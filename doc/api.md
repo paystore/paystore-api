@@ -65,6 +65,7 @@ _callback (PaymentCallback)_
 | `PaymentDTO.acquirerAuthorizationNumber` | `String` | Sim | Número da autorização fornecido pela adquirente (que consta no comprovante do portador do cartão). |
 | `PaymentDTO.Receipt.clientVia` | `String` | Não | Conteúdo do comprovante - via do cliente. |
 | `PaymentDTO.Receipt.merchantVia` | `String` | Não | Conteúdo do comprovante - via do estabelecimento. |
+| -------- | -------- | -------- | -------- |
 | **`onError`** ||| Método para notificação em caso de erro. |
 | `ErrorDTO.paymentsResponseCode` | `String` | Sim | Código de resposta para o erro ocorrido. Vide [Códigos de Resposta](#codigos-de-resposta) |
 | `ErrorDTO.acquirerResponseCode` | `String` | Não | Código de resposta para o erro ocorrido retornado pela adquirente. Note que este erro só será retornado se a transação for não autorizada pela adquirente. |
