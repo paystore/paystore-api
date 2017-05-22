@@ -1,6 +1,6 @@
 # Integração com Aplicação de Pagamentos via API
 
-Uma das formas de se integrar com a aplicação de pagamentos é via [IPC](https://developer.android.com/guide/components/aidl.html). Para isto, é fornecida uma biblioteca, a `payment-api.aar`, contendo todo o código necessário a ser usada para tais chamadas.
+Uma das formas de se integrar com a aplicação de pagamentos é via [IPC] (https://developer.android.com/guide/components/aidl.html). Para isto, é fornecida uma biblioteca, a `payment-api.aar`, contendo todo o código necessário a ser usada para tais chamadas.
 
 Usando esta API, é possível realizar pagamentos, confirmá-los ou cancelá-los (desfazer), e estorná-los. Estes pagamentos podem ser solicitados com valores pré-definidos ou valores em aberto a serem entrados pelo operador do terminal, uma lista de tipos de pagamentos (débito, crédito à vista, crédito parcelado, etc.) permitidos ou sem tal restrição, confiorme especificação a seguir.
 
@@ -14,10 +14,10 @@ Para integração com a API de pagamentos, é fornecida a interface `PaymentClie
   
 | Assinatura | Descrição |
 | -------- | -------- |
-| [`void startPayment(PaymentRequestDTO paymentRequest, PaymentCallback paymentCallback)`](#startpayment)| Realiza o processo de autorização de pagamento. |
+| [`void startPayment(PaymentRequest paymentRequest, PaymentCallback paymentCallback)`](#startpayment)| Realiza o processo de autorização de pagamento. |
 | [`void confirmPayment(Long paymentId, PaymentCallback paymentCallback)`](#confirmpayment) | Confirma uma autorização de pagamento realizada anteriormente.   |
 | [`void cancelPayment(Long paymentId, PaymentCallback paymentCallback)`](#cancelpayment) | Desfaz uma autorização de pagamento realizada anteriormente. |
-| [`void reversePayment(ReversePaymentRequestDTO paymentRequest, PaymentCallback paymentCallback)`](#reversepayment) | Realiza o processo de estorno de pagamento.  |
+| [`void reversePayment(ReversePaymentRequest paymentRequest, PaymentCallback paymentCallback)`](#reversepayment) | Realiza o processo de estorno de pagamento.  |
 | [`void cancelReversePayment(Long paymentId, PaymentCallback paymentCallback)`](#cancelReversepayment) | Desfaz uma solicitação de estorno de pagamento.  |
 
 ### `startPayment()`
@@ -28,12 +28,12 @@ Este método deve ser chamado quando se deseja fazer uma solicitação de autori
 
 | Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
-| `request` | `PaymentRequestDTO` | Sim | Objeto de transferência de dados que conterá as informações da requisição do pagamento. Note que nem todos os parâmetros são obrigatórios.  |
+| `request` | `PaymentRequest` | Sim | Objeto de transferência de dados que conterá as informações da requisição do pagamento. Note que nem todos os parâmetros são obrigatórios.  |
 | `callback` | `PaymentCallback` | Sim | Interface que será executada para notificações de sucesso ou erro do processo de pagamento.   |
     
 **Detalhe dos Parâmetros**  
   
-_request (PaymentRequestDTO)_
+_request (PaymentRequest)_
 
 | Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
@@ -43,33 +43,34 @@ _request (PaymentRequestDTO)_
 | `appTransactionId` | `String` | Sim | Identificador da transação integrada para o software que originou a solicitação de pagamento. Não deve se repetir. |
 | `ApplicationInfo.credentials` | `Credentials` | Sim | Credenciais da aplicação que está solicitando a operação, conforme cadastro na PayStore. Basicamente, trata-se da identificação da aplicação e o token de acesso. | 
 | `ApplicationInfo.softwareVersion` | `String` | Sim | Versão da aplicação que está solicitando o pagamento. | 
+| `showReceiptView` | `Boolean` | Não | Indica se a tela de comprovante deve ser exibida pela aplicação de pagamentos (_true_) ou não (_false_). O valor padrão é _false_. | 
 
 _callback (PaymentCallback)_
 
 | Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
 | **`onSuccess`** ||| Método para notificação em caso de sucesso |
-| `PaymentDTO.value` | `BigDecimal` | Sim | Valor do pagamento. Este é o valor que foi aprovado pela adquirente. Deve ser validado sempre na resposta, ainda que tenha sido passado como parâmetro, pois há adquirentes que, para algumas situações, aprovam valores diferentes dos solicitados. |
-| `PaymentDTO.paymentType` | `PaymentType` | Sim | Tipo de pagamento (Débito, Crédito, Voucher, etc.) usado no pagamento. |
-| `PaymentDTO.installments` | `Integer` | Não | Quantidade de parcelas do pagamento. |
-| `PaymentDTO.acquirer` | `String` | Sim | Adquirente que autorizou o pagamento. |
-| `PaymentDTO.paymentId` | `String` | Sim | Identificador da transação para a aplicação de pagamentos. Esta é a informação a ser usada para a confirmação e desfazimento. |
-| `PaymentDTO.brand` | `String` | Sim | Bandeira do cartão usado no pagamento. |
-| `PaymentDTO.bin` | `String` | Sim | Bin do cartão usado no pagamento. |
-| `PaymentDTO.panLast4Digits` | `String` | Sim | Últimos 4 dígitos do PAN do cartão usado na transação. |
-| `PaymentDTO.captureType` | `CaptureTypeDTO` | Sim | Forma de captura do cartão usado na transação. |
-| `PaymentDTO.paymentDate` | `Date` | Sim | Data/hora do pagamento para a aplicação de pagamentos. |
-| `PaymentDTO.acquirerId` | `String` | Sim | Identificador da transação para a adquirente. Identificador que consta no arquivo que a adquirente fornece, de forma que viabilize a conciliação do pagamento com a transação integrada. |
-| `PaymentDTO.acquirerResponseCode` | `String` | Sim | Código de resposta da adquirente. |
-| `PaymentDTO.acquirerResponseDate` | `String` | Sim | Data/hora retornada pela adquirente. |
-| `PaymentDTO.acquirerAuthorizationNumber` | `String` | Sim | Número da autorização fornecido pela adquirente (que consta no comprovante do portador do cartão). |
-| `PaymentDTO.Receipt.clientVia` | `String` | Não | Conteúdo do comprovante - via do cliente. |
-| `PaymentDTO.Receipt.merchantVia` | `String` | Não | Conteúdo do comprovante - via do estabelecimento. |
-| | | | |
+| `Payment.value` | `BigDecimal` | Sim | Valor do pagamento. Este é o valor que foi aprovado pela adquirente. Deve ser validado sempre na resposta, ainda que tenha sido passado como parâmetro, pois há adquirentes que, para algumas situações, aprovam valores diferentes dos solicitados. |
+| `Payment.paymentType` | `PaymentType` | Sim | Tipo de pagamento (Débito, Crédito, Voucher, etc.) usado no pagamento. |
+| `Payment.installments` | `Integer` | Não | Quantidade de parcelas do pagamento. |
+| `Payment.acquirer` | `String` | Sim | Adquirente que autorizou o pagamento. |
+| `Payment.paymentId` | `String` | Sim | Identificador da transação para a aplicação de pagamentos. Esta é a informação a ser usada para a confirmação e desfazimento. |
+| `Payment.brand` | `String` | Sim | Bandeira do cartão usado no pagamento. |
+| `Payment.bin` | `String` | Sim | Bin do cartão usado no pagamento. |
+| `Payment.panLast4Digits` | `String` | Sim | Últimos 4 dígitos do PAN do cartão usado na transação. |
+| `Payment.captureType` | `CaptureType` | Sim | Forma de captura do cartão usado na transação. |
+| `Payment.paymentDate` | `Date` | Sim | Data/hora do pagamento para a aplicação de pagamentos. |
+| `Payment.acquirerId` | `String` | Sim | Identificador da transação para a adquirente. Identificador que consta no arquivo que a adquirente fornece, de forma que viabilize a conciliação do pagamento com a transação integrada. |
+| `Payment.acquirerResponseCode` | `String` | Sim | Código de resposta da adquirente. |
+| `Payment.acquirerResponseDate` | `String` | Sim | Data/hora retornada pela adquirente. |
+| `Payment.acquirerAuthorizationNumber` | `String` | Sim | Número da autorização fornecido pela adquirente (que consta no comprovante do portador do cartão). |
+| `Payment.Receipt.clientVia` | `String` | Não | Conteúdo do comprovante - via do cliente. |
+| `Payment.Receipt.merchantVia` | `String` | Não | Conteúdo do comprovante - via do estabelecimento. |
+|||||
 | **`onError`** ||| Método para notificação em caso de erro. |
-| `ErrorDTO.paymentsResponseCode` | `String` | Sim | Código de resposta para o erro ocorrido. Vide [Códigos de Resposta](#codigos-de-resposta) |
-| `ErrorDTO.acquirerResponseCode` | `String` | Não | Código de resposta para o erro ocorrido retornado pela adquirente. Note que este erro só será retornado se a transação for não autorizada pela adquirente. |
-| `ErrorDTO.responseMessage` | `String` | Sim | Mensagem descritiva da causa da não autorização. Caso a transação tenha sido negada pela adquirente, conterá a mensagem retornada pela adquirente. |
+| `ErrorData.paymentsResponseCode` | `String` | Sim | Código de resposta para o erro ocorrido. Vide [Códigos de Resposta](#codigos-de-resposta) |
+| `ErrorData.acquirerResponseCode` | `String` | Não | Código de resposta para o erro ocorrido retornado pela adquirente. Note que este erro só será retornado se a transação for não autorizada pela adquirente. |
+| `ErrorData.responseMessage` | `String` | Sim | Mensagem descritiva da causa da não autorização. Caso a transação tenha sido negada pela adquirente, conterá a mensagem retornada pela adquirente. |
 
 ##### Exemplo
 
@@ -103,7 +104,7 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
     }
 
     public void doExecute(){
-        PaymentRequestDTO request = new PaymentRequestDTO();
+        PaymentRequest request = new PaymentRequest();
         request.setValue(new BigDecimal(50));
         request.setAppTransactionId("123456");
         
@@ -126,7 +127,7 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
     }
 
     @Override
-    public void onSuccess(PaymentDTO payment) {
+    public void onSuccess(Payment payment) {
         Log.i(TAG, payment.toString());
     }
 }
@@ -151,11 +152,11 @@ _callback_
 | Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
 | **`onSuccess`** ||| Método para notificação em caso de sucesso |
-| | | | |
+|||||
 | **`onError`** ||| Método para notificação em caso de erro. |
-| `ErrorDTO.paymentsResponseCode` | `String` | Sim | Código de resposta para o erro ocorrido. Vide [Códigos de Resposta](#codigos-de-resposta)|
-| `ErrorDTO.acquirerResponseCode` | `String` | Não | Código de resposta para o erro ocorrido retornado pela adquirente. Note que este erro só será retornado se a transação for não autorizada pela adquirente. |
-| `ErrorDTO.responseMessage` | `String` | Sim | Mensagem descritiva da causa da não autorização. Caso a transação tenha sido negada pela adquirente, conterá a mensagem retornada pela adquirente. |
+| `ErrorData.paymentsResponseCode` | `String` | Sim | Código de resposta para o erro ocorrido. Vide [Códigos de Resposta](#codigos-de-resposta)|
+| `ErrorData.acquirerResponseCode` | `String` | Não | Código de resposta para o erro ocorrido retornado pela adquirente. Note que este erro só será retornado se a transação for não autorizada pela adquirente. |
+| `ErrorData.responseMessage` | `String` | Sim | Mensagem descritiva da causa da não autorização. Caso a transação tenha sido negada pela adquirente, conterá a mensagem retornada pela adquirente. |
 
 ##### Exemplo
 
@@ -189,7 +190,7 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
     }
 
     public void doExecute(){
-        PaymentRequestDTO request = new PaymentRequestDTO();
+        PaymentRequest request = new PaymentRequest();
         request.setValue(new BigDecimal(50));
         request.setAppTransactionId("123456");
         
@@ -212,7 +213,7 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
     }
 
     @Override
-    public void onSuccess(PaymentDTO payment) {
+    public void onSuccess(Payment payment) {
         Log.i(TAG, payment.toString());
 
         try {
@@ -226,7 +227,7 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
                 }
             
                 @Override
-                public void onSuccess(PaymentDTO payment) {
+                public void onSuccess(Payment payment) {
                     Log.i(TAG, payment.toString());
                 }
             
@@ -258,11 +259,11 @@ _callback_
 | Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
 | **`onSuccess`** ||| Método para notificação em caso de sucesso |
-| | | | |
+|||||
 | **`onError`** ||| Método para notificação em caso de erro. |
-| `ErrorDTO.paymentsResponseCode` | `String` | Sim | Código de resposta para o erro ocorrido. Vide [Códigos de Resposta](#codigos-de-resposta)|
-| `ErrorDTO.acquirerResponseCode` | `String` | Não | Código de resposta para o erro ocorrido retornado pela adquirente. Note que este erro só será retornado se a transação for não autorizada pela adquirente. |
-| `ErrorDTO.responseMessage` | `String` | Sim | Mensagem descritiva da causa da não autorização. Caso a transação tenha sido negada pela adquirente, conterá a mensagem retornada pela adquirente. |
+| `ErrorData.paymentsResponseCode` | `String` | Sim | Código de resposta para o erro ocorrido. Vide [Códigos de Resposta](#codigos-de-resposta)|
+| `ErrorData.acquirerResponseCode` | `String` | Não | Código de resposta para o erro ocorrido retornado pela adquirente. Note que este erro só será retornado se a transação for não autorizada pela adquirente. |
+| `ErrorData.responseMessage` | `String` | Sim | Mensagem descritiva da causa da não autorização. Caso a transação tenha sido negada pela adquirente, conterá a mensagem retornada pela adquirente. |
 
 ##### Exemplo
 
@@ -296,7 +297,7 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
     }
 
     public void doExecute(){
-        PaymentRequestDTO request = new PaymentRequestDTO();
+        PaymentRequest request = new PaymentRequest();
         request.setValue(new BigDecimal(50));
         request.setAppTransactionId("123456");
         
@@ -319,7 +320,7 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
     }
 
     @Override
-    public void onSuccess(PaymentDTO payment) {
+    public void onSuccess(Payment payment) {
         Log.i(TAG, payment.toString());
 
         try {
@@ -333,7 +334,7 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
                 }
             
                 @Override
-                public void onSuccess(PaymentDTO payment) {
+                public void onSuccess(Payment payment) {
                     Log.i(TAG, payment.toString());
                 }
             
@@ -352,18 +353,18 @@ Este método deve ser chamado quando se deseja fazer uma solicitação de estorn
 
 Note que a transação de estorno não possui confirmação, mas apenas desfazimento. Assim, a confirmação ocorrerá naturalmente com o não envio do desfazimento, a depender do comportamento de cada adquirente.
 
-Também a depender do comportamento de cada adquirente, é possível que não haja desfazimento para a transação de estorno para uma determinada adquirente. Neste caso, estornos aprovados retornarão o valor _false_ no campo "ReversePaymentDTO.cancelable". Além disto, caso seja chamado o método `cancelReversePayment()`, um erro específico será retornado informando que não é possível executar tal operação (vide [Códigos de Resposta](#codigos-de-resposta)).
+Também a depender do comportamento de cada adquirente, é possível que não haja desfazimento para a transação de estorno para uma determinada adquirente. Neste caso, estornos aprovados retornarão o valor _false_ no campo "ReversePayment.cancelable". Além disto, caso seja chamado o método `cancelReversePayment()`, um erro específico será retornado informando que não é possível executar tal operação (vide [Códigos de Resposta](#codigos-de-resposta)).
 
 **Parâmetros**
 
 | Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
-| `request` | `ReversePaymentRequestDTO` | Sim | Objeto de transferência de dados que conterá as informações da requisição do estorno do pagamento. Note que nem todos os parâmetros são obrigatórios.  |
+| `request` | `ReversePaymentRequest` | Sim | Objeto de transferência de dados que conterá as informações da requisição do estorno do pagamento. Note que nem todos os parâmetros são obrigatórios.  |
 | `callback` | `ReversePaymentCallback` | Sim | Interface que será executada para notificações de sucesso ou erro do processo de estorno.   |
     
 **Detalhe dos parâmetros**  
   
-_request (ReversePaymentRequestDTO)_
+_request (ReversePaymentRequest)_
 
 | Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
@@ -372,25 +373,26 @@ _request (ReversePaymentRequestDTO)_
 | `appTransactionId` | `String` | Sim | Identificador da transação integrada para o software que originou a solicitação de estorno. Não deve se repetir. |
 | `ApplicationInfo.credentials` | `Credentials` | Sim | Credenciais da aplicação que está solicitando a operação, conforme cadastro na PayStore. Basicamente, trata-se da identificação da aplicação e o token de acesso. | 
 | `ApplicationInfo.softwareVersion` | `String` | Sim | Versão da aplicação que está solicitando o pagamento. | 
+| `showReceiptView` | `Boolean` | Não | Indica se a tela de comprovante deve ser exibida pela aplicação de pagamentos (_true_) ou não (_false_). O valor padrão é _false_. | 
 
 _callback (ReversePaymentCallback)_
 
 | Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
 | **`onSuccess`** ||| Método para notificação em caso de sucesso |
-| `ReversePaymentDTO.paymentId` | `String` | Sim | Identificador da transação de estorno para a aplicação de pagamentos. Esta é a informação a ser usada para a confirmação e desfazimento. |
-| `ReversePaymentDTO.acquirerId` | `String` | Sim | Identificador da transação de estorno para a adquirente. Identificador que consta no arquivo que a adquirente fornece, de forma que viabilize a conciliação do estorno com a transação integrada. |
-| `ReversePaymentDTO.cancelable` | `Boolean` | Sim | _True_, caso esta transação possa ser desfeita. _False_ caso contrário. |
-| `ReversePaymentDTO.acquirerResponseCode` | `String` | Sim | Código de resposta da adquirente. |
-| `ReversePaymentDTO.acquirerResponseDate` | `String` | Sim | Data/hora retornada pela adquirente. |
-| `ReversePaymentDTO.acquirerAuthorizationNumber` | `String` | Sim | Número da autorização fornecido pela adquirente (que consta no comprovante do portador do cartão). |
-| `ReversePaymentDTO.Receipt.clientVia` | `String` | Não | Conteúdo do comprovante - via do cliente. |
-| `ReversePaymentDTO.Receipt.merchantVia` | `String` | Não | Conteúdo do comprovante - via do estabelecimento. |
-| | | | |
+| `ReversePayment.paymentId` | `String` | Sim | Identificador da transação de estorno para a aplicação de pagamentos. Esta é a informação a ser usada para a confirmação e desfazimento. |
+| `ReversePayment.acquirerId` | `String` | Sim | Identificador da transação de estorno para a adquirente. Identificador que consta no arquivo que a adquirente fornece, de forma que viabilize a conciliação do estorno com a transação integrada. |
+| `ReversePayment.cancelable` | `Boolean` | Sim | _True_, caso esta transação possa ser desfeita. _False_ caso contrário. |
+| `ReversePayment.acquirerResponseCode` | `String` | Sim | Código de resposta da adquirente. |
+| `ReversePayment.acquirerResponseDate` | `String` | Sim | Data/hora retornada pela adquirente. |
+| `ReversePayment.acquirerAuthorizationNumber` | `String` | Sim | Número da autorização fornecido pela adquirente (que consta no comprovante do portador do cartão). |
+| `ReversePayment.Receipt.clientVia` | `String` | Não | Conteúdo do comprovante - via do cliente. |
+| `ReversePayment.Receipt.merchantVia` | `String` | Não | Conteúdo do comprovante - via do estabelecimento. |
+|||||
 | **`onError`** ||| Método para notificação em caso de erro. |
-| `ErrorDTO.paymentsResponseCode` | `String` | Sim | Código de resposta para o erro ocorrido. Vide [Códigos de Resposta](#codigos-de-resposta) |
-| `ErrorDTO.acquirerResponseCode` | `String` | Não | Código de resposta para o erro ocorrido retornado pela adquirente. Note que este erro só será retornado se a transação for não autorizada pela adquirente. |
-| `ErrorDTO.responseMessage` | `String` | Sim | Mensagem descritiva da causa da não autorização. Caso a transação tenha sido negada pela adquirente, conterá a mensagem retornada pela adquirente. |
+| `ErrorData.paymentsResponseCode` | `String` | Sim | Código de resposta para o erro ocorrido. Vide [Códigos de Resposta](#codigos-de-resposta) |
+| `ErrorData.acquirerResponseCode` | `String` | Não | Código de resposta para o erro ocorrido retornado pela adquirente. Note que este erro só será retornado se a transação for não autorizada pela adquirente. |
+| `ErrorData.responseMessage` | `String` | Sim | Mensagem descritiva da causa da não autorização. Caso a transação tenha sido negada pela adquirente, conterá a mensagem retornada pela adquirente. |
 
 ##### Exemplo
 
@@ -424,7 +426,7 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
     }
 
     public void doExecute(){
-        ReversePaymentRequestDTO request = new ReversePaymentRequestDTO();
+        ReversePaymentRequest request = new ReversePaymentRequest();
         request.setValue(new BigDecimal(50));
         request.setAppTransactionId("123456");
         request.setPaymentId("999999");
@@ -448,7 +450,7 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
     }
 
     @Override
-    public void onSuccess(ReversePaymentDTO payment) {
+    public void onSuccess(ReversePayment payment) {
         Log.i(TAG, payment.toString());
     }
 }
@@ -475,11 +477,11 @@ _callback_
 | Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
 | **`onSuccess`** ||| Método para notificação em caso de sucesso |
-| | | | |
+|||||
 | **`onError`** ||| Método para notificação em caso de erro. |
-| `ErrorDTO.paymentsResponseCode` | `String` | Sim | Código de resposta para o erro ocorrido. Vide [Códigos de Resposta](#codigos-de-resposta)|
-| `ErrorDTO.acquirerResponseCode` | `String` | Não | Código de resposta para o erro ocorrido retornado pela adquirente. Note que este erro só será retornado se a transação for não autorizada pela adquirente. |
-| `ErrorDTO.responseMessage` | `String` | Sim | Mensagem descritiva da causa da não autorização. Caso a transação tenha sido negada pela adquirente, conterá a mensagem retornada pela adquirente. |
+| `ErrorData.paymentsResponseCode` | `String` | Sim | Código de resposta para o erro ocorrido. Vide [Códigos de Resposta](#codigos-de-resposta)|
+| `ErrorData.acquirerResponseCode` | `String` | Não | Código de resposta para o erro ocorrido retornado pela adquirente. Note que este erro só será retornado se a transação for não autorizada pela adquirente. |
+| `ErrorData.responseMessage` | `String` | Sim | Mensagem descritiva da causa da não autorização. Caso a transação tenha sido negada pela adquirente, conterá a mensagem retornada pela adquirente. |
 
 ##### Exemplo
 
@@ -513,7 +515,7 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
     }
 
     public void doExecute(){
-        ReversePaymentRequestDTO request = new ReversePaymentRequestDTO();
+        ReversePaymentRequest request = new ReversePaymentRequest();
         request.setValue(new BigDecimal(50));
         request.setAppTransactionId("123456");
         request.setPaymentId("999999");
@@ -537,7 +539,7 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
     }
 
     @Override
-    public void onSuccess(ReversePaymentDTO payment) {
+    public void onSuccess(ReversePayment payment) {
         Log.i(TAG, payment.toString());
 
         try {
@@ -551,7 +553,7 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
                 }
             
                 @Override
-                public void onSuccess(PaymentDTO payment) {
+                public void onSuccess(Payment payment) {
                     Log.i(TAG, payment.toString());
                 }
             
@@ -564,77 +566,43 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
 }
 ```
 
-# Integração com Aplicação de Pagamentos via Intent
+# Integração com Aplicação de Pagamentos via _Broadcast_
 
-As _Intents_ permitem iniciar uma atividade em outro aplicativo descrevendo uma ação simples que você quer executar em um objeto [Intent](https://developer.android.com/reference/android/content/Intent.html). O aplicativo de pagamentos expôe  _Intents_ para a realização de pagamento e estorno. No caso de pagamento, a _Intent_ possibilita a exibição da tela de digitação do valor e uso das suas diversas funcionalidades, tal como realização de vários pagamentos (_split_). Para estorno, a _Intent_ exibe tela para a localização da transação a ser estornada além das telas que compões a realização do estorno em si.
+Diferente das outras integrações, nesta, outras aplicações podem receber notificações de que um pagamento ou um estorno foi efetuado. Esta informação é enviada pela aplicação de pagamentos via [_Broadcasts_](https://developer.android.com/guide/components/broadcasts.html) que podem ser recebidos por quaisquer aplicações que tenham interesse em saber da ocorrência de pagamentos ou estornos.
 
-## Solicitações de _Intent_
+## _Actions_
 
-Para iniciar o aplicativo de pagamentos com uma _Intent_, é preciso antes criar um objeto _Intent_ especificando sua ação e o pacote.
+| Action |  Extra |
+| -------- | -------- |
+| `Intents.action.ACTION_AFTER_PAYMENT` (`br.com.phoebus.android.payments.AFTER_PAYMENT_FINISHED`) |  `Intents.extra.EXTRA_PAYMENT_RETURN`: `Payment` (vide [startPayment()](#startpayment) ou documentação da classe.) |
+| `Intents.action.ACTION_AFTER_REVERSAL` (`br.com.phoebus.android.payments.AFTER_PAYMENT_REVERSAL_FINISHED`) |  `Intents.extra.EXTRA_PAYMENT_RETURN`: `ReversePayment` (vide [reversePayment()](#reversepayment) ou documentação da classe.) |
 
-- **Action**: Todas as _Intents_ são chamadas com uma _action_ específica para cada fim, conforme descrição a seguir.
-- **Package**: Chame setPackage("br.com.phoebus.android.payments") para garantir que o aplicativo de pagamentos processe as intenções. Se o pacote não está definido, o sistema determina quais aplicativos podem processar a _Intent_.
-
-Após criar a _Intent_, você pode solicitar que o sistema inicie o aplicativo relacionado de diversas formas. Um método comum é passar a _Intent_ ao método `startActivity()`. O sistema lança o aplicativo necessário — neste caso, o de pagamentos — e inicia a _Activity_ correspondente.
+## Exemplo
 
 ```java
-// Create an Intent with the action to ACTION_START_PAYMENT
-Intent paymentIntent = new Intent(Intents.action.ACTION_START_PAYMENT);
+public class MyBroadcastReceiver extends BroadcastReceiver {
 
-// Make the Intent explicit by setting the Payment App package
-paymentIntent.setPackage("br.com.phoebus.android.payments");
+    @Override
+    public void onReceive(Context context, Intent intent) {
 
-// Attempt to start an activity that can handle the Intent
-startActivity(paymentIntent);
+        if (intent.getAction().equals(Intents.action.ACTION_AFTER_PAYMENT)) {
+            Payment payment = DataUtils.fromBundle(Payment.class, intent.getExtras(), Intents.extra.EXTRA_PAYMENT_RETURN);
+            
+            // Do something!
+            
+        } else if (intent.getAction().equals(Intents.action.ACTION_AFTER_REVERSAL)) {
+            ReversePayment reversePayment = DataUtils.fromBundle(ReversePayment.class, intent.getExtras(), Intents.extra.EXTRA_PAYMENT_RETURN);
+
+            // Do something!
+
+        }
+
+    }
+    
+}
 ```
 
-**Atenção**: É muito importante atentar-se que pagamentos e estornos feitos via _Intents_ são automaticamente confirmados. Pagamentos só podem ser desfeitos via estorno ([API](#reversepayment) ou [Intent](#action-action_reverse_payment)).
 
-Constantes para os _actions_ e _extras_ podem ser encontrados em:
-
-- `br.com.phoebus.android.payments.api.utils.Intents.action`
-- `br.com.phoebus.android.payments.api.utils.Intents.extra`
-
-## Action `ACTION_START_PAYMENT`
-
-### Parâmetros de Entrada
-
-| Nome | Tipo | Obrigatório | Descrição |
-| -------- | -------- | -------- | -------- |
-| `EXTRA_PAYMENT_VALUE` | `BigDecimal` | Não | Valor do pagamento solicitado. Caso não seja preenchido (null), a interface solicitará o valor do operador. |
-| `EXTRA_PAYMENT_TYPES` | `List<PaymentType>` | Não | Tipos de pagamentos (Débito, Crédito, Voucher, etc.) permitidos para este pagamento. Caso seja vazio ou seja null, significa que todos os tipos são permitidos. Caso contenha apenas um, este tipo será o utilizado (se possível) e não será perguntado nada ao operador. |
-| `EXTRA_PAYMENT_ALLOWS_MULTIPLE_PAYMENTS` | `Boolean` | Não | _True_ (_default_) caso o operador possa fazer _split_ do pagamento, _false_ caso contrário. | 
-| `EXTRA_PAYMENT_ALLOWS_CASH` | `Boolean` | Não | _True_ caso seja permitido registrar pagamentos em dinheiro, _false_ (_default_) caso contrário. | 
-| `EXTRA_PAYMENT_SHOW_RECEIPTS` | `Boolean` | Não | _True_ (_default_) caso seja para a aplicação de pagamentos exibir os comprovantes, _false_ caso contrário. |
-| `EXTRA_PAYMENT_APP_TRANSACTION_ID` | `String` | Sim | Identificador da transação integrada para o software que originou a solicitação de pagamento. Não deve se repetir. |
-| `EXTRA_PAYMENT_APPLICATION_INFO` | `ApplicationInfo` | Sim | Vide parâmetros de [startPayment()](#startpayment) para mais informações. |
-
-### Parâmetros de Saída
-
-| Nome | Tipo | Obrigatório | Descrição |
-| -------- | -------- | -------- | -------- |
-| `EXTRA_PAYMENT_RESPONSES` | `List<PaymentDTO>` | Sim | Lista contendo os pagamentos realizados. Para mais detalhes sobre `PaymentDTO`, vide [startPayment()](#startpayment) ou documentação da classe. |
-
-## Action `ACTION_REVERSE_PAYMENT`
-
-### Parâmetros de Entrada
-
-| Nome | Tipo | Obrigatório | Descrição |
-| -------- | -------- | -------- | -------- |
-| `EXTRA_PAYMENT_PAYMENT_ID` | `String` | Não | Identificador da transação que está sendo estornada para a aplicação de pagamento. Caso não seja passado, uma interface de busca padrão da aplicação de pagamentos será exibida. |
-| `EXTRA_PAYMENT_APP_TRANSACTION_ID` | `String` | Sim | Identificador da transação integrada para o software que originou a solicitação de estorno. Não deve se repetir. |
-| `EXTRA_PAYMENT_APPLICATION_INFO` | `ApplicationInfo` | Sim | Vide parâmetros de [reversePayment()](#reversepayment) para mais informações. |
-
-### Parâmetros de Saída
-
-| Nome | Tipo | Obrigatório | Descrição |
-| -------- | -------- | -------- | -------- |
-| `EXTRA_PAYMENT_REVERSE_RESPONSE` | `ReversePaymentDTO` | Sim | Informações sobre o estorno realizado. Para mais detalhes sobre `ReversePaymentDTO`, vide [reversePayment()](#reversepayment) ou documentação da classe. |
-
-
-# Integração com Aplicação de Pagamentos via Content Povider
-
-_[Desrever aqui!]_
 
 # Códigos de Resposta
 
@@ -647,5 +615,6 @@ _[Desrever aqui!]_
 | 05     | Problerma na comunicação com o aplicativo de pagamento. | Todas |
 | 06     | Operação não disponível na adquirente. | `cancelReversePayment` |
 | 07     | Problema de comunicação com a adquirente. | Todas |
+| 08     | Credenciais Inválidas. | `startPayment` e `reversePayment` |
 | 99     | Problema Interno. | Todas |
 
