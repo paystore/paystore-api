@@ -566,6 +566,61 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
 }
 ```
 
+# Integração com Aplicação de Pagamentos via _Content Povider_
+
+A integração via _Content Provider_ visa possibilitar que outros aplicativos possam consultar informações a respeito de pagamentos efetuados, sendo possível realizar filtros e obter diversos dados dos pagamentos, inclusive sua situação.
+
+Só será permitido listar pagamentos feitos pela pela própria aplicação que está realizando a consulta.
+
+## content://br.com.phoebus.android.payments.provider/payments
+URI para obtenção de informações de pagamentos.
+
+### Filtros
+
+| Nome | Tipo | Obrigatório | Descrição |
+| -------- | -------- | -------- | -------- |
+| `status` | `PaymentStatus` | Não | Filtra os pagamentos cuja situação está na lista passada (aceita mais de um valor). |
+| `startDate` | `Date` | Não | Filtra os pagamentos cuja data seja maior ou igual ao valor passado. |
+| `finishDate` | `Date` | Não | Filtra os pagamentos cuja data seja menor ou igual ao valor passado. |
+| `startValue` | `BigDecimal` | Não | Filtra os pagamentos cujo valor seja maior ou igual ao valor passado. |
+| `finishValue` | `BigDecimal` | Não | Filtra os pagamentos cujo valor seja menor ou igual ao valor passado. |
+| `paymentId` | `String` | Não | Filtra os pagamentos cujo identificador da transação para a aplicação de pagamentos seja o valor passado. |
+| `lastDigits` | `String` | Não | Filtra os pagamentos cujos últimos 4 dígitos do PAN do cartão usado na transação seja igual ao valor passado. |
+| `applicationId` | `Credentials` | Sim | Identificação da aplicação que está realizando a consulta. | 
+| `secretToken` | `Credentials` | Sim | Token de acesso da aplicação que está realizando a consulta. | 
+| `softwareVersion` | `String` | Sim | Versão da aplicação que está solicitando a consulta. | 
+
+### Retorno
+
+| Nome | Tipo |  Descrição |
+| -------- | -------- | -------- | -------- |
+| `id` | `String` | Identificador da transação para a aplicação de pagamentos. Esta é a informação a ser usada para a confirmação e desfazimento. |
+| `value` | `BigDecimal` | Valor do pagamento. Este é o valor que foi aprovado pela adquirente. Deve ser validado sempre na resposta, ainda que tenha sido passado como parâmetro, pois há adquirentes que, para algumas situações, aprovam valores diferentes dos solicitados. |
+| `paymentType` | `PaymentType` | Tipo de pagamento (Débito, Crédito, Voucher, etc.) usado no pagamento. |
+| `installments` | `Integer` | Quantidade de parcelas do pagamento. |
+| `acquirerName` | `String` | Adquirente que autorizou o pagamento. |
+| `cardBrand` | `String` | Bandeira do cartão usado no pagamento. |
+| `cardBin` | `String` | Bin do cartão usado no pagamento. |
+| `cardPanLast4Digits` | `String` | Últimos 4 dígitos do PAN do cartão usado na transação. |
+| `captureType` | `CaptureType` | Forma de captura do cartão usado na transação. |
+| `status` | `PaymentStatus` | Situação do pagamento. |
+| `date` | `Date` | Data/hora do pagamento para a aplicação de pagamentos. |
+| `acquirerId` | `String` | Identificador da transação para a adquirente. Identificador que consta no arquivo que a adquirente fornece, de forma que viabilize a conciliação do pagamento com a transação integrada. |
+| `acquirerResponseCode` | `String` | Código de resposta da adquirente. |
+| `acquirerResponseDate` | `String` | Data/hora retornada pela adquirente. |
+| `acquirerAuthorizationNumber` | `String` | Número da autorização fornecido pela adquirente (que consta no comprovante do portador do cartão). |
+| `receiptClient` | `String` | Conteúdo do comprovante - via do cliente. |
+| `receiptMerchant` | `String` | Conteúdo do comprovante - via do estabelecimento. 
+
+## API
+
+Para facilitar o uso, é disponibilizada uma API de acesso ao provider, com o uso das classes:
+
+- `PaymentProviderRequest`
+- `PaymentProviderApi`
+- `PaymentContract`
+
+
 # Integração com Aplicação de Pagamentos via _Broadcast_
 
 Diferente das outras integrações, nesta, outras aplicações podem receber notificações de que um pagamento ou um estorno foi efetuado. Esta informação é enviada pela aplicação de pagamentos via [_Broadcasts_](https://developer.android.com/guide/components/broadcasts.html) que podem ser recebidos por quaisquer aplicações que tenham interesse em saber da ocorrência de pagamentos ou estornos.
