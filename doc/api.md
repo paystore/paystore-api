@@ -593,7 +593,7 @@ URI para obtenção de informações de pagamentos.
 ### Retorno
 
 | Nome | Tipo |  Descrição |
-| -------- | -------- | -------- | -------- |
+| -------- | -------- | -------- |
 | `id` | `String` | Identificador da transação para a aplicação de pagamentos. Esta é a informação a ser usada para a confirmação e desfazimento. |
 | `value` | `BigDecimal` | Valor do pagamento. Este é o valor que foi aprovado pela adquirente. Deve ser validado sempre na resposta, ainda que tenha sido passado como parâmetro, pois há adquirentes que, para algumas situações, aprovam valores diferentes dos solicitados. |
 | `paymentType` | `PaymentType` | Tipo de pagamento (Débito, Crédito, Voucher, etc.) usado no pagamento. |
