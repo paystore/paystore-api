@@ -59,6 +59,7 @@ _callback (PaymentCallback)_
 | `Payment.bin` | `String` | Sim | Bin do cartão usado no pagamento. |
 | `Payment.panLast4Digits` | `String` | Sim | Últimos 4 dígitos do PAN do cartão usado na transação. |
 | `Payment.captureType` | `CaptureType` | Sim | Forma de captura do cartão usado na transação. |
+| `Payment.paymentStatus` | `PaymentStatus` | Sim | Situação do pagamento. No caso de solitações retornadas com sucesso, esta informação sempre será _PENDING_, requerendo uma confirmação ou desfazimento para a sua conclusão definitiva. |
 | `Payment.paymentDate` | `Date` | Sim | Data/hora do pagamento para a aplicação de pagamentos. |
 | `Payment.acquirerId` | `String` | Sim | Identificador da transação para a adquirente. Identificador que consta no arquivo que a adquirente fornece, de forma que viabilize a conciliação do pagamento com a transação integrada. |
 | `Payment.acquirerResponseCode` | `String` | Sim | Código de resposta da adquirente. |
@@ -520,7 +521,7 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
         request.setAppTransactionId("123456");
         request.setPaymentId("999999");
         
-        ApplicationInfo appInfo = new ApplciationInfo();
+        ApplicationInfo appInfo = new ApplicationInfo();
         appInfo.setCredentials(new Credentials("demo-app", "TOKEN-KEY-DEMO"));
         appInfo.setSoftwareVersion("1.0.0.0");
         
@@ -566,11 +567,96 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
 }
 ```
 
+# Integração com Aplicação de Pagamentos via Intent
+
+As _Intents_ permitem iniciar uma atividade em outro aplicativo descrevendo uma ação simples que você quer executar em um objeto [Intent](https://developer.android.com/reference/android/content/Intent.html). O aplicativo de pagamentos expôe _Intents_ para a realização de pagamento. No caso de pagamento, a _Intent_ possibilita o uso das suas diversas funcionalidades, tal como realização de vários pagamentos (_split_).
+
+## Solicitações de _Intent_
+
+Para iniciar o aplicativo de pagamentos com uma _Intent_, é preciso antes criar um objeto _Intent_ especificando sua ação e o pacote.
+
+- **Action**: Todas as _Intents_ são chamadas com uma _action_ específica para cada fim, conforme descrição a seguir.
+- **Package**: Chame setPackage("br.com.phoebus.android.payments") para garantir que o aplicativo de pagamentos processe as intenções. Se o pacote não está definido, o sistema determina quais aplicativos podem processar a _Intent_.
+
+Após criar a _Intent_, você pode solicitar que o sistema inicie o aplicativo relacionado de diversas formas. Um método comum é passar a _Intent_ ao método `startActivityForResult()`. O sistema lança o aplicativo necessário — neste caso, o de pagamentos — e inicia a _Activity_ correspondente.
+
+```java
+// Create an Intent with the action to ACTION_START_PAYMENT
+Intent paymentIntent = new Intent(Intents.action.ACTION_START_PAYMENT);
+
+// Make the Intent explicit by setting the Payment App package
+paymentIntent.setPackage("br.com.phoebus.android.payments");
+
+// Create PaymentResquest 
+PaymentRequest request = new PaymentRequest();
+request.setValue(new BigDecimal(50));
+request.setAppTransactionId("123456");
+
+ApplicationInfo appInfo = new ApplciationInfo();
+appInfo.setCredentials(new Credentials("demo-app", "TOKEN-KEY-DEMO"));
+appInfo.setSoftwareVersion("1.0.0.0");
+
+request.setApplicationInfo(appInfo);
+
+//Add PaymentResquest in Intent
+paymentIntent.putExtra(PaymentClient.BUNDLE_PARAMS_PAYMENT_REQUEST, Parcels.wrap(request));
+
+
+// Attempt to start an activity that can handle the Intent
+startActivityForResult(paymentIntent);
+```
+
+### Recebendo resultado da operação de pagamento via Intent
+
+```java
+	@Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PAYMENT_REQUEST) {
+			if (data != null && resultCode !=  RESULT_CANCELED){
+				//Recovering executed payments list
+				List<br.com.phoebus.android.payments.api.Payment> payments = Parcels.unwrap(data.getParcelableExtra(Intents.extra.EXTRA_PAYMENT_RETURN));
+			}else if(data != null && data.containsKey(PaymentClient.BUNDLE_PARAMS_ERROR_DATA)){
+				//Recovering error Message
+				ErrorData errorData = DataUtils.fromBundle(data, PaymentClient.BUNDLE_PARAMS_ERROR_DATA);
+                Toast.makeText(this, errorData.getResponseMessage(), Toast.LENGTH_LONG).show();
+			}
+			
+		}
+	}
+```
+
+**Atenção**: É muito importante atentar-se que pagamentos e estornos feitos via _Intents_ são automaticamente confirmados. Pagamentos só podem ser desfeitos via estorno ([API](#reversepayment) ou [Intent](#action-action_reverse_payment)).
+
+Constantes para os _actions_ e _extras_ podem ser encontrados em:
+
+- `br.com.phoebus.android.payments.api.utils.Intents.action`
+- `br.com.phoebus.android.payments.api.utils.Intents.extra`
+
+## Action `ACTION_START_PAYMENT`
+
+### Parâmetros de Entrada
+
+| Nome | Tipo | Obrigatório | Descrição |
+| -------- | -------- | -------- | -------- |
+| `EXTRA_PAYMENT_REQUEST` | `PaymentRequest` | Sim | Objeto de transferência de dados que conterá as informações da requisição do pagamento. Note que nem todos os parâmetros são obrigatórios. vide [startPayment()](#startpayment)  |
+ 
+
+### Parâmetros de Saída
+
+| Nome | Tipo | Obrigatório | Descrição |
+| -------- | -------- | -------- | -------- |
+| `EXTRA_PAYMENT_RESPONSES` | `List<Payment>` | Não | Lista contendo os pagamentos realizados. Para mais detalhes sobre `Payment`, vide [startPayment()](#startpayment) ou documentação da classe. |
+| `EXTRA_ERROR_DATA` | `ErrorData` | Não |  Objeto contento o erro que ocorreu no pagamento. Para mais detalhes sobre `ErrorData`. ErrorData é o mesmo retornado no [startPayment()](#startpayment)
+
 # Integração com Aplicação de Pagamentos via _Content Povider_
 
 A integração via _Content Provider_ visa possibilitar que outros aplicativos possam consultar informações a respeito de pagamentos efetuados, sendo possível realizar filtros e obter diversos dados dos pagamentos, inclusive sua situação.
 
 Só será permitido listar pagamentos feitos pela pela própria aplicação que está realizando a consulta.
+
+Declare essa permissão no AndroidManifest.xml do seu Aplicativo para ter acesso ao _Content Provider_.
+
+`<uses-permission android:name="br.com.phoebus.android.payments.provider.READ_PERMISSION" />`
 
 ## content://br.com.phoebus.android.payments.provider/payments
 URI para obtenção de informações de pagamentos.
@@ -612,6 +698,74 @@ URI para obtenção de informações de pagamentos.
 | `receiptClient` | `String` | Conteúdo do comprovante - via do cliente. |
 | `receiptMerchant` | `String` | Conteúdo do comprovante - via do estabelecimento. 
 
+**Atenção**: O objeto retornado pode ser preenchido seletivamente. Para isso, deve ser passado um array de Strings com as colunas desejadas para o método query() do Content Resolver. Caso utilize nossa API de acesso ao provider, pode utilizar o método setColumns() do PaymentProviderRequest.
+
+##### Exemplo
+
+```java
+public class MyActivity extends Activity{
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.your_actitivy);
+
+        //definindo as credenciais
+        ApplicationInfo appInfo = new ApplicationInfo();
+        appInfo.setCredentials(new Credentials("demo-app", "TOKEN-KEY-DEMO"));
+        appInfo.setSoftwareVersion("1.0.0.0");
+
+        //criando objeto de request para o payment content provider
+        PaymentProviderRequest request = createRequest(appInfo);
+
+        //selecionando propriedades retornadas
+        String[] columns = new String[]{
+            PaymentContract.column.ID,
+            PaymentContract.column.VALUE,
+            PaymentContract.column.PAYMENT_STATUS,
+            PaymentContract.column.PAYMENT_DATE,
+            PaymentContract.column.CARD_BRAND,
+        };
+
+        //solicitando a lista de pagamentos
+        Cursor cursor = getContext().getContentResolver().query(request.getUriBuilder().build(), columns, null, null, null);
+
+        //parse de Cursor para List<Payments>
+        List<Payment> paymentsList = Payment.fromCursor(cursor);
+    }
+
+    private PaymentProviderRequest createRequest(ApplicationInfo appInfo){
+        PaymentProviderRequest paymentRequest = new PaymentProviderRequest(appInfo);
+
+        //filtrando pelo paymentId
+        paymentRequest.setPaymentId("000000000");
+
+        //filtrando pelo por periodo
+        //utilizar o formato dd/MM/yyyy
+        paymentRequest.setStartDate("01/01/2017");
+        paymentRequest.setFinishDate("01/06/2017");
+
+        //filtrando por faixa de valores de pagamento
+        paymentRequest.setStartValue(new BigDecimal("0,00"));
+        paymentRequest.setFinishValue(new BigDecimal("1000,00"));
+
+        //filtrando pelos 4 últimos dígitos do cartão
+        paymentRequest.setLastDigits("4456");
+
+        //filtrando pelos 4 últimos dígitos do cartão
+        List<PaymentStatus> status = Arrays.asList(new PaymentStatus[]{
+            PaymentStatus.PENDING,
+            PaymentStatus.CONFIRMED,
+            PaymentStatus.CANCELLED,
+            PaymentStatus.REVERSED
+        });
+
+        return paymentRequest;
+    }
+
+}
+```
+
 ## API
 
 Para facilitar o uso, é disponibilizada uma API de acesso ao provider, com o uso das classes:
@@ -620,6 +774,55 @@ Para facilitar o uso, é disponibilizada uma API de acesso ao provider, com o us
 - `PaymentProviderApi`
 - `PaymentContract`
 
+##### Exemplo utilizando PaymentProviderApi
+
+```java
+public class MyActivity extends Activity{
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.your_actitivy);
+
+        //definindo as credenciais
+        ApplicationInfo appInfo = new ApplicationInfo();
+        appInfo.setCredentials(new Credentials("demo-app", "TOKEN-KEY-DEMO"));
+        appInfo.setSoftwareVersion("1.0.0.0");
+
+        //criando objeto de request para o payment content provider
+        PaymentProviderRequest request = createRequest(appInfo);
+
+        //selecionando propriedades retornadas
+        request.setColumns(new String[]{
+            PaymentContract.column.ID,
+            PaymentContract.column.VALUE,
+            PaymentContract.column.PAYMENT_STATUS,
+            PaymentContract.column.PAYMENT_DATE,
+            PaymentContract.column.CARD_BRAND,
+        });
+
+        //parse de Cursor para List<Payments>
+        List<Payment> paymentsList = PaymentProviderApi.create(this).findAll(request);
+    }
+
+    private PaymentProviderRequest createRequest(ApplicationInfo appInfo){
+        PaymentProviderRequest paymentRequest = new PaymentProviderRequest(appInfo);
+
+        //filtrando pelo por periodo
+        //utilizar o formato dd/MM/yyyy
+        paymentRequest.setStartDate("01/01/2017");
+        paymentRequest.setFinishDate("01/06/2017");
+
+        //filtrando pelos 4 últimos dígitos do cartão
+        List<PaymentStatus> status = Arrays.asList(new PaymentStatus[]{
+            PaymentStatus.CONFIRMED
+        });
+
+        return paymentRequest;
+    }
+
+}
+```
 
 # Integração com Aplicação de Pagamentos via _Broadcast_
 
@@ -672,4 +875,3 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
 | 07     | Problema de comunicação com a adquirente. | Todas |
 | 08     | Credenciais Inválidas. | `startPayment` e `reversePayment` |
 | 99     | Problema Interno. | Todas |
-
