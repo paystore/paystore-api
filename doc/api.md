@@ -1,6 +1,6 @@
 # Integração com Aplicação de Pagamentos via API
 
-Uma das formas de se integrar com a aplicação de pagamentos é via [IPC] (https://developer.android.com/guide/components/aidl.html). Para isto, é fornecida uma biblioteca, a `payment-api.aar`, contendo todo o código necessário a ser usada para tais chamadas.
+Uma das formas de se integrar com a aplicação de pagamentos é via [IPC] (https://developer.android.com/guide/components/aidl.html). Para isto, é fornecida uma biblioteca, a `payment-api-1.0.4.16.aar`, contendo todo o código necessário a ser usada para tais chamadas.
 
 Usando esta API, é possível realizar pagamentos, confirmá-los ou cancelá-los (desfazer), e estorná-los. Estes pagamentos podem ser solicitados com valores pré-definidos ou valores em aberto a serem entrados pelo operador do terminal, uma lista de tipos de pagamentos (débito, crédito à vista, crédito parcelado, etc.) permitidos ou sem tal restrição, confiorme especificação a seguir.
 
