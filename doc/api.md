@@ -136,7 +136,24 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
 
 ### `confirmPayment()`
 
-Este método deve ser chamado para confirmar uma transação anteriormente autorizada. Esta transação não deve ter sido confirmada ou desfeita ainda e deve ter sido autorizada (não negada) previamente pela Rede Adquirente. Após a execução desta confirmação, a transação só poderá ser cancelada através de uma operação de estorno. Caso o App consumidor desta API tenha finalizado o seu processo de negócio com êxito, porém não tenha chamado o método **confirmPayment()**, a transação permanecerá com a seguintes situações: **Situação PayStore = "Pendente"; Resolução no Adquirente = "Pendente"**.  Como resultado, teremos uma inconsistência transacional, visto que, na virada do dia, o comportamento padrão para todos as redes adquirentes é confirmar automaticamente as transações não confirmadas. Isso gerará um impacto no processo de liquidação, ou seja, comprometerá a agenda financeira do Lojista, uma vez que a liquidação baseia-se nas informações analíticas (via arquivo ou via API) disponibilizadas pela PayStore. 
+Este método deve ser chamado para confirmar uma transação que o terminal conseguiu processar completamente a perna de autorização enviada pelo Autorizador.
+
+Este método **não** deve ser chamado para uma transação já confirmada, ou seja, em que já se executou o método **confirmPayment()** anteriormente.
+
+Este método **não** deve ser chamado para uma transação já desfeita, ou seja, em que já se executou o método **cancelPayment()** anteriormente.
+
+Este método **não** deve ser chamado para uma transação que foi negada pelo Autorizador, ou seja, a transação precisa ter sido autorizada pelo Autorizador.
+
+
+Após a execução desta confirmação, a transação só poderá ser cancelada através de uma operação de estorno (o estorno é a operação executada pelo menu CANCELAMENTO do terminal). 
+
+Caso o App consumidor desta API tenha finalizado o seu processo de negócio com êxito, porém não tenha chamado o método **confirmPayment()**, a transação permanecerá com a seguintes situações:
+
+    Situação PayStore       = "Pendente".
+    
+    Resolução no Adquirente = "Pendente".
+
+Como resultado, poderemos ter uma inconsistência transacional, visto que, na virada do dia, algumas redes adquirentes confirmam automaticamente as transações que não receberam a perna de confirmação. Outras redes adquirentes trabalham apenas com duas pernas, sem a necessidade de perna de confirmação. Neste caso, se houver algum problema na conclusão da transação no lado do terminal, é imperativo que a solução de captura execute o método **cancelPayment()**, a fim de desfazer a transação no adquirente e evitar cobrança para o cliente portador do cartão. 
 
 **Parâmetros**
 
@@ -243,7 +260,15 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
 
 ### `cancelPayment()`
 
-Este método deve ser chamado para desfazer uma transação anteriormente autorizada. Esta transação não deve ter sido confirmada ou desfeita ainda e deve ter sido autorizada (não negada) previamente. Após a execução deste desfazimento, a transação não poderá ser mais confirmada. Caso o App consumidor desta API **não** tenha finalizado o seu processo de negócio com êxito, é imprescindível a chamada do método **cancelPayment()**. A consequência de não cancelar uma transação que não teve seu processo de negócio concluído é semelhante a consequência de não confirmar. Porém, nesse caso, com um agravante, pois provavelmente o cliente não levará o produto/serviço associado à transação financeira ou uma nova tentativa de venda poderá ser feita, resultando em uma cobrança em duplicidade para o cliente portador do cartão.
+Este método deve ser sempre chamado para desfazer uma transação que o terminal não conseguiu receber/processar/imprimir a perna de autorização enviada pelo Autorizador.
+Este método **não** deve ser chamado para uma transação já confirmada, ou seja, em que já se executou o método **confirmPayment()**.
+Este método **não** deve ser chamado para desfazer uma transação já desfeita.
+Este método **não** deve ser chamado para uma transação que foi negada pelo Autorizador.
+Este método **não** é um estorno (o estorno é a operação executada pelo menu CANCELAMENTO do terminal). O estorno é executado em transações que foram concluídas com êxito, ou seja, estão confirmadas.
+
+Após a execução do desfazimento, **cancelPayment()**, a transação não poderá ser mais confirmada pela aplicação do terminal, ou seja, não se pode mais executar o método **confirmPayment()**.
+
+Caso o App consumidor desta API não tenha finalizado o seu processo de negócio com êxito, é imprescindível a chamada do método **cancelPayment()**. A consequência de não cancelar uma transação que não teve seu processo de negócio concluído é semelhante à consequência de não confirmar. Porém, nesse caso, com um agravante, pois provavelmente o cliente não levará o produto/serviço associado à transação financeira, ou uma nova tentativa de venda poderá ser feita, resultando em uma cobrança em duplicidade para o cliente portador do cartão.
 
 **Parâmetros**
 
