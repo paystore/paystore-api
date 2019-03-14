@@ -609,10 +609,7 @@ Após criar a _Intent_, você pode solicitar que o sistema inicie o aplicativo r
 
 ```java
 // Create an Intent with the action to ACTION_START_PAYMENT
-Intent paymentIntent = new Intent(Intents.action.ACTION_START_PAYMENT);
-
-// Make the Intent explicit by setting the Payment App package
-paymentIntent.setPackage("br.com.phoebus.android.payments");
+Intent paymentIntent = new Intent("br.com.phoebus.payments.ACTION_START_PAYMENT");
 
 // Create PaymentResquest 
 PaymentRequest request = new PaymentRequest();
