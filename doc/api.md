@@ -14,7 +14,8 @@ Para integração com a API de pagamentos, é fornecida a interface `PaymentClie
   
 | Assinatura | Descrição |
 | -------- | -------- |
-| [`void startPayment(PaymentRequest paymentRequest, PaymentCallback paymentCallback)`](#startpayment)| Realiza o processo de autorização de pagamento. |
+| [`void startPayment(PaymentRequest paymentRequest, PaymentCallback paymentCallback)`](#startpayment)| Realiza o processo de autorização de pagamento. ( DEPRECATED : Utilizar startPaymentV2 ) |
+| [`void startPaymentV2(PaymentRequestV2 paymentRequest, PaymentCallback paymentCallback)`](#startpayment)| Realiza o processo de autorização de pagamento. |
 | [`void confirmPayment(Long paymentId, PaymentCallback paymentCallback)`](#confirmpayment) | Confirma uma autorização de pagamento realizada anteriormente.   |
 | [`void cancelPayment(Long paymentId, PaymentCallback paymentCallback)`](#cancelpayment) | Desfaz uma autorização de pagamento realizada anteriormente. |
 | [`void reversePayment(ReversePaymentRequest paymentRequest, PaymentCallback paymentCallback)`](#reversepayment) | Realiza o processo de estorno de pagamento.  |
@@ -133,6 +134,126 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
     }
 }
 ```
+
+### `startPaymentV2()`
+
+Este método deve ser chamado quando se deseja fazer uma solicitação de autorização de pagamento. Durante sua execução, os dados do pagamento serão validados, informações adicionais serão solicitadas ao operador (e.g. senha e CVV), e a autorização junto à adquirente será feita.
+
+**Parâmetros**
+
+| Nome | Tipo | Obrigatório | Descrição |
+| -------- | -------- | -------- | -------- |
+| `request` | `PaymentRequestV2` | Sim | Objeto de transferência de dados que conterá as informações da requisição do pagamento. Note que nem todos os parâmetros são obrigatórios.  |
+| `callback` | `PaymentCallback` | Sim | Interface que será executada para notificações de sucesso ou erro do processo de pagamento.   |
+    
+**Detalhe dos Parâmetros**  
+  
+_request (PaymentRequest)_
+
+| Nome | Tipo | Obrigatório | Descrição |
+| -------- | -------- | -------- | -------- |
+| `value` | `BigDecimal` | Não | Valor do pagamento solicitado. Caso não seja preenchido (null), a interface solicitará o valor do operador. |
+| `paymentTypes` | `List<PaymentType>` | Não | Tipos de pagamentos (Débito, Crédito, Voucher, etc.) permitidos para este pagamento. Caso seja vazio ou seja null, significa que todos os tipos são permitidos. Caso contenha apenas um, este tipo será o utilizado (se possível) e não será perguntado nada ao operador. |
+| `installments` | `Integer` | Não | Quantidade de parcelas. Usado apenas para tipos de pagamentos que suportem parcelamento e neste caso é obrigatório. Valor deve ser entre 2 e 99. | 
+| `appTransactionId` | `String` | Sim | Identificador da transação integrada para o software que originou a solicitação de pagamento. Não deve se repetir. |
+| `ApplicationInfo.credentials` | `Credentials` | Sim | Credenciais da aplicação que está solicitando a operação, conforme cadastro na PayStore. Basicamente, trata-se da identificação da aplicação e o token de acesso. | 
+| `ApplicationInfo.softwareVersion` | `String` | Sim | Versão da aplicação que está solicitando o pagamento. | 
+| `showReceiptView` | `Boolean` | Não | Indica se a tela de comprovante deve ser exibida pela aplicação de pagamentos (_true_) ou não (_false_). O valor padrão é _false_. | 
+| `tokenizeCard` | `Boolean` | Não | Indica se deve ser feita a tokenização do cartão após a aprovação do pagamento (true) ou não (false). O valor padrão é false.  | 
+| `tokenizeEmail` | `String` | Se tokenizeCard for true, sim, caso contrário, não. | E-mail do portador do cartão. Se “tokenizeCard” for false, este parâmetro é ignorado. | 
+| `tokenizeNationalDocument` | `String` | Não | CPF ou CNPJ do portador do cartão. Se “tokenizeCard” for false, este parâmetro é ignorado. Se for true e não for informado esse parâmetro, então a chamada à API de criação de token no e-commerce também não o utilizará. | 
+  
+
+_callback (PaymentCallback)_
+
+| Nome | Tipo | Obrigatório | Descrição |
+| -------- | -------- | -------- | -------- |
+| **`onSuccess`** ||| Método para notificação em caso de sucesso |
+| `Payment.value` | `BigDecimal` | Sim | Valor do pagamento. Este é o valor que foi aprovado pela adquirente. Deve ser validado sempre na resposta, ainda que tenha sido passado como parâmetro, pois há adquirentes que, para algumas situações, aprovam valores diferentes dos solicitados. |
+| `Payment.paymentType` | `PaymentType` | Sim | Tipo de pagamento (Débito, Crédito, Voucher, etc.) usado no pagamento. |
+| `Payment.installments` | `Integer` | Não | Quantidade de parcelas do pagamento. |
+| `Payment.acquirer` | `String` | Sim | Adquirente que autorizou o pagamento. |
+| `Payment.paymentId` | `String` | Sim | Identificador da transação para a aplicação de pagamentos. Esta é a informação a ser usada para a confirmação e desfazimento. |
+| `Payment.brand` | `String` | Sim | Bandeira do cartão usado no pagamento. |
+| `Payment.bin` | `String` | Sim | Bin do cartão usado no pagamento. |
+| `Payment.panLast4Digits` | `String` | Sim | Últimos 4 dígitos do PAN do cartão usado na transação. |
+| `Payment.captureType` | `CaptureType` | Sim | Forma de captura do cartão usado na transação. |
+| `Payment.paymentStatus` | `PaymentStatus` | Sim | Situação do pagamento. No caso de solitações retornadas com sucesso, esta informação sempre será _PENDING_, requerendo uma confirmação ou desfazimento para a sua conclusão definitiva. |
+| `Payment.paymentDate` | `Date` | Sim | Data/hora do pagamento para a aplicação de pagamentos. |
+| `Payment.acquirerId` | `String` | Sim | Identificador da transação para a adquirente. Identificador que consta no arquivo que a adquirente fornece, de forma que viabilize a conciliação do pagamento com a transação integrada. |
+| `Payment.acquirerResponseCode` | `String` | Sim | Código de resposta da adquirente. |
+| `Payment.acquirerResponseDate` | `String` | Sim | Data/hora retornada pela adquirente. |
+| `Payment.acquirerAuthorizationNumber` | `String` | Sim | Número da autorização fornecido pela adquirente (que consta no comprovante do portador do cartão). |
+| `Payment.Receipt.clientVia` | `String` | Não | Conteúdo do comprovante - via do cliente. |
+| `Payment.Receipt.merchantVia` | `String` | Não | Conteúdo do comprovante - via do estabelecimento. |
+| `Payment.cardToken` | `String` | Não | Token do cartão utilizado na transação. |
+|||||
+| **`onError`** ||| Método para notificação em caso de erro. |
+| `ErrorData.paymentsResponseCode` | `String` | Sim | Código de resposta para o erro ocorrido. Vide [Códigos de Resposta](#codigos-de-resposta) |
+| `ErrorData.acquirerResponseCode` | `String` | Não | Código de resposta para o erro ocorrido retornado pela adquirente. Note que este erro só será retornado se a transação for não autorizada pela adquirente. |
+| `ErrorData.responseMessage` | `String` | Sim | Mensagem descritiva da causa da não autorização. Caso a transação tenha sido negada pela adquirente, conterá a mensagem retornada pela adquirente. |
+
+##### Exemplo
+
+```java
+public class MyActivity extends Activity implements PaymentClient.PaymentCallback {
+
+    private PaymentClient paymentClient;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_payment);
+    
+        paymentClient = new PaymentClientImpl();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        paymentClient.bind(this);
+    }
+
+    @Override
+    protected void onPause() {
+         try {
+            paymentClient.unbind(this);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+        }
+        super.onPause();
+    }
+
+    public void doExecute(){
+        PaymentRequestV2 request = new PaymentRequestV2();
+        request.setValue(new BigDecimal(50));
+        request.setAppTransactionId("123456");
+        
+        ApplicationInfo appInfo = new ApplciationInfo();
+        appInfo.setCredentials(new Credentials("demo-app", "TOKEN-KEY-DEMO"));
+        appInfo.setSoftwareVersion("1.0.0.0");
+        
+        request.setApplicationInfo(appInfo);
+
+        try {
+            paymentClient.startPaymentV2(request, this);
+        } catch (ClientException e) {
+            Log.e(TAG, "Error starting payment", e);
+        }
+    }
+
+    @Override
+    public void onError(String errorMessage) {
+        Log.e(TAG, errorMessage);
+    }
+
+    @Override
+    public void onSuccess(PaymentV2 payment) {
+        Log.i(TAG, payment.toString());
+    }
+}
+```
+
 
 ### `confirmPayment()`
 
@@ -890,12 +1011,15 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
 
 | Código | Descrição | Operações |
 | -------| --------- | --------- |
-| 01     | Transação negada pela adquirente. | `startPayment` |
-| 02     | Transação negada pelo cartão. | `startPayment` |
-| 03     | Operação cancelada pelo operador. | `startPayment` e `reversePayment` |
+| 01     | Transação negada pela adquirente. | `startPayment` e `startPaymentV2` |
+| 02     | Transação negada pelo cartão. | `startPayment` e `startPaymentV2`|
+| 03     | Operação cancelada pelo operador. | `startPayment`, `startPaymentV2` e `reversePayment` |
 | 04     | Pagamento não encontrado. | `confirmPayment`, `cancelPayment`, `reversePayment` e `cancelReversePayment` |
 | 05     | Problerma na comunicação com o aplicativo de pagamento. | Todas |
 | 06     | Operação não disponível na adquirente. | `cancelReversePayment` |
 | 07     | Problema de comunicação com a adquirente. | Todas |
-| 08     | Credenciais Inválidas. | `startPayment` e `reversePayment` |
+| 08     | Credenciais Inválidas. | `startPayment`, `startPaymentV2` e `reversePayment` |
+| 09     | Aplicativo de Pagamentos não possui permissões para continuar . | `startPayment`,`startPaymentV2` e `reversePayment` |
+| 10     | Terminal Bloqueado. | `startPayment`, `startPaymentV2` e `reversePayment` |
+| 11     | Pagamento bloqueado pois existe transação pendente. | `startPayment`, `startPaymentV2` e `reversePayment` |
 | 99     | Problema Interno. | Todas |
