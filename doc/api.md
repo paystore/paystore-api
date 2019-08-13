@@ -16,10 +16,11 @@ Para integração com a API de pagamentos, é fornecida a interface `PaymentClie
 | -------- | -------- |
 | [`void startPayment(PaymentRequest paymentRequest, PaymentCallback paymentCallback)`](#startpayment)| Realiza o processo de autorização de pagamento. ( DEPRECATED : Utilizar startPaymentV2 ) |
 | [`void startPaymentV2(PaymentRequestV2 paymentRequest, PaymentCallback paymentCallback)`](#startpayment)| Realiza o processo de autorização de pagamento. |
-| [`void confirmPayment(Long paymentId, PaymentCallback paymentCallback)`](#confirmpayment) | Confirma uma autorização de pagamento realizada anteriormente.   |
-| [`void cancelPayment(Long paymentId, PaymentCallback paymentCallback)`](#cancelpayment) | Desfaz uma autorização de pagamento realizada anteriormente. |
+| [`void confirmPayment(String paymentId, PaymentCallback paymentCallback)`](#confirmpayment) | Confirma uma autorização de pagamento realizada anteriormente.   |
+| [`void cancelPayment(String paymentId, PaymentCallback paymentCallback)`](#cancelpayment) | Desfaz uma autorização de pagamento realizada anteriormente. |
 | [`void reversePayment(ReversePaymentRequest paymentRequest, PaymentCallback paymentCallback)`](#reversepayment) | Realiza o processo de estorno de pagamento.  |
-| [`void cancelReversePayment(Long paymentId, PaymentCallback paymentCallback)`](#cancelReversepayment) | Desfaz uma solicitação de estorno de pagamento.  |
+| [`void cancelReversePayment(String paymentId, PaymentCallback paymentCallback)`](#cancelReversepayment) | Desfaz uma solicitação de estorno de pagamento.  |
+| [`void setTheme(String theme, PaymentCallback paymentCallback)`](#setTheme) | Define um tema para a aplicação de Pagamentos.  |
 
 ### `startPayment()`
 
@@ -278,7 +279,7 @@ Como resultado, poderemos ter uma inconsistência transacional, visto que, na vi
 
 | Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
-| `paymentId` | `Long` | Sim | Identificador da transação que será confirmada para a aplicação de pagamentos. |
+| `paymentId` | `String` | Sim | Identificador da transação que será confirmada para a aplicação de pagamentos. |
 | `credentials` | `Credentials` | Sim | Credenciais da aplicação que está solicitando a operação, conforme cadastro na PayStore. Basicamente, trata-se da identificação da aplicação e o token de acesso. | 
 | `callback` | `PaymentCallback` | Sim | Interface que será executada para notificações de sucesso ou erro.   |
     
@@ -397,7 +398,7 @@ Caso o App consumidor desta API não tenha finalizado o seu processo de negócio
 
 | Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
-| `paymentId` | `Long` | Sim | Identificador da transação que será desfeita para a aplicação de pagamentos. |
+| `paymentId` | `String` | Sim | Identificador da transação que será desfeita para a aplicação de pagamentos. |
 | `credentials` | `Credentials` | Sim | Credenciais da aplicação que está solicitando a operação, conforme cadastro na PayStore. Basicamente, trata-se da identificação da aplicação e o token de acesso. | 
 | `callback` | `PaymentCallback` | Sim | Interface que será executada para notificações de sucesso ou erro.   |
     
@@ -518,7 +519,7 @@ _request (ReversePaymentRequest)_
 | Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
 | `value` | `BigDecimal` | Não | Valor da transação a ser estornada. Caso não seja preenchido (null), a interface solicitará o valor do operador. Esta informação é utilizada para validar a integridade da transação que está sendo estornada. |
-| `paymentId` | `Long` | Sim | Identificador da transação que será estornada para a aplicação de pagamentos. |
+| `paymentId` | `String` | Sim | Identificador da transação que será estornada para a aplicação de pagamentos. |
 | `appTransactionId` | `String` | Sim | Identificador da transação integrada para o software que originou a solicitação de estorno. Não deve se repetir. |
 | `ApplicationInfo.credentials` | `Credentials` | Sim | Credenciais da aplicação que está solicitando a operação, conforme cadastro na PayStore. Basicamente, trata-se da identificação da aplicação e o token de acesso. | 
 | `ApplicationInfo.softwareVersion` | `String` | Sim | Versão da aplicação que está solicitando o pagamento. | 
@@ -615,7 +616,7 @@ Como dito na descrição de [`reversePayment()`](#reversepayment), é possível 
 
 | Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
-| `paymentId` | `Long` | Sim | Identificador da transação que será desfeita para a aplicação de pagamentos. |
+| `paymentId` | `String` | Sim | Identificador da transação que será desfeita para a aplicação de pagamentos. |
 | `credentials` | `Credentials` | Sim | Credenciais da aplicação que está solicitando a operação, conforme cadastro na PayStore. Basicamente, trata-se da identificação da aplicação e o token de acesso. | 
 | `callback` | `PaymentCallback` | Sim | Interface que será executada para notificações de sucesso ou erro.   |
     
@@ -711,6 +712,107 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
         } catch (ClientException e) {
             Log.e(TAG, "Error starting payment", e);
         }
+    }
+}
+```
+
+### `setTheme()`
+
+Este método deve ser chamado para definir um tema com padrões de cores para as telas de captura na aplicação de Pagamentos.
+
+
+**Parâmetros**
+
+| Nome | Tipo | Obrigatório | Descrição |
+| -------- | -------- | -------- | -------- |
+| `theme` | `String` | Sim | Nome do tema que será definido (_case-sensitive_). |
+| `callback` | `PaymentCallback` | Sim | Interface que será executada para notificações de sucesso ou erro.   |
+    
+**Detalhe dos parâmetros** 
+
+_theme_
+
+* `RedTheme`
+* `PinkTheme`
+* `PurpleTheme`
+* `DeepPurpleTheme`
+* `IndigoTheme`
+* `BlueTheme`
+* `LightBlueTheme`
+* `CyanTheme`
+* `TealTheme`
+* `GreenTheme`
+* `LightGreenTheme`
+* `LimeTheme`
+* `YellowTheme`
+* `AmberTheme`
+* `OrangeTheme`
+* `DeepOrangeTheme`
+* `BrownTheme`
+* `GreyTheme`
+* `BlueGreyTheme`
+  
+_callback_
+
+| Nome | Tipo | Obrigatório | Descrição |
+| -------- | -------- | -------- | -------- |
+| **`onSuccess`** ||| Método para notificação em caso de sucesso |
+|||||
+| **`onError`** ||| Método para notificação em caso de erro. |
+| `ErrorData.paymentsResponseCode` | `String` | Sim | Código de resposta para o erro ocorrido. Vide [Códigos de Resposta](#codigos-de-resposta)|
+| `ErrorData.responseMessage` | `String` | Sim | Mensagem descritiva da causa do erro. |
+
+##### Exemplo
+
+```java
+public class MyActivity extends Activity implements PaymentClient.PaymentCallback {
+
+    private PaymentClient paymentClient;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_payment);
+    
+        paymentClient = new PaymentClientImpl();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        paymentClient.bind(this);
+    }
+
+    @Override
+    protected void onPause() {
+         try {
+            paymentClient.unbind(this);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+        }
+        super.onPause();
+    }
+
+    public void doExecute(){
+        ApplicationInfo appInfo = new ApplciationInfo();
+        appInfo.setCredentials(new Credentials("demo-app", "TOKEN-KEY-DEMO"));
+        appInfo.setSoftwareVersion("1.0.0.0");
+        
+        try {
+            paymentClient.setTheme("GreyTheme", this);
+        } catch (ClientException e) {
+            Log.e(TAG, "Error setting theme", e);
+        }
+    }
+
+    @Override
+    public void onError(Object data) {
+        Log.e(TAG, "Error: " + errorData.getResponseMessage());
+    }
+
+    @Override
+    public void onSuccess(Object data) {
+        Log.i(TAG, "Success!");
     }
 }
 ```
@@ -945,4 +1047,5 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
 | 09     | Aplicativo de Pagamentos não possui permissões para continuar . | `startPayment`,`startPaymentV2` e `reversePayment` |
 | 10     | Terminal Bloqueado. | `startPayment`, `startPaymentV2` e `reversePayment` |
 | 11     | Pagamento bloqueado pois existe transação pendente. | `startPayment`, `startPaymentV2` e `reversePayment` |
+| 12     | Tema inválido                                       |  `setTheme` |
 | 99     | Problema Interno. | Todas |
