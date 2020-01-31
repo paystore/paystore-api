@@ -730,7 +730,6 @@ Como dito na descrição de [`reversePayment()`](#reversepayment), é possível 
 | Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
 | `paymentId` | `String` | Sim | Identificador da transação que será desfeita para a aplicação de pagamentos. |
-| `credentials` | `Credentials` | Sim | Credenciais da aplicação que está solicitando a operação, conforme cadastro na PayStore. Basicamente, trata-se da identificação da aplicação e o token de acesso. | 
 | `callback` | `PaymentCallback` | Sim | Interface que será executada para notificações de sucesso ou erro.   |
     
 **Detalhe dos parâmetros**  
