@@ -15,10 +15,11 @@ Para integração com a API de pagamentos, é fornecida a interface `PaymentClie
 | Assinatura | Descrição |
 | -------- | -------- |
 | [`void startPayment(PaymentRequest paymentRequest, PaymentCallback paymentCallback)`](#startpayment)| Realiza o processo de autorização de pagamento. ( DEPRECATED : Utilizar startPaymentV2 ) |
-| [`void startPaymentV2(PaymentRequestV2 paymentRequest, PaymentCallback paymentCallback)`](#startpayment)| Realiza o processo de autorização de pagamento. |
+| [`void startPaymentV2(PaymentRequestV2 paymentRequest, PaymentCallback paymentCallback)`](#startpaymentV2)| Realiza o processo de autorização de pagamento. |
 | [`void confirmPayment(String paymentId, PaymentCallback paymentCallback)`](#confirmpayment) | Confirma uma autorização de pagamento realizada anteriormente.   |
 | [`void cancelPayment(String paymentId, PaymentCallback paymentCallback)`](#cancelpayment) | Desfaz uma autorização de pagamento realizada anteriormente. |
-| [`void reversePayment(ReversePaymentRequest paymentRequest, PaymentCallback paymentCallback)`](#reversepayment) | Realiza o processo de estorno de pagamento.  |
+| [`void reversePayment(ReversePaymentRequest paymentRequest, PaymentCallback paymentCallback)`](#reversepayment) | Realiza o processo de estorno de pagamento.  ( DEPRECATED : Utilizar reversePaymentV2 ) |
+| [`void reversePaymentV2(ReversePaymentRequestV2 paymentRequest, PaymentCallback paymentCallback)`](#reversepaymentV2) | Realiza o processo de estorno de pagamento.  |
 | [`void cancelReversePayment(String paymentId, PaymentCallback paymentCallback)`](#cancelReversepayment) | Desfaz uma solicitação de estorno de pagamento.  |
 | [`void setTheme(String theme, PaymentCallback paymentCallback)`](#setTheme) | Define um tema para a aplicação de Pagamentos.  |
 
@@ -45,7 +46,7 @@ _request (PaymentRequest)_
 | `appTransactionId` | `String` | Sim | Identificador da transação integrada para o software que originou a solicitação de pagamento. Não deve se repetir. |
 | `ApplicationInfo.credentials` | `Credentials` | Sim | Credenciais da aplicação que está solicitando a operação, conforme cadastro na PayStore. Basicamente, trata-se da identificação da aplicação e o token de acesso. | 
 | `ApplicationInfo.softwareVersion` | `String` | Sim | Versão da aplicação que está solicitando o pagamento. | 
-| `showReceiptView` | `Boolean` | Não | Indica se a tela de comprovante deve ser exibida pela aplicação de pagamentos (_true_) ou não (_false_). O valor padrão é _false_. | 
+| `showReceiptView` | `IGNORADO` | Não | A Solução sempre irá imprimir o comprovante depois que a [`confirmação`](#confirmpayment) for executada.  | 
 
 _callback (PaymentCallback)_
 
@@ -149,7 +150,7 @@ Este método deve ser chamado quando se deseja fazer uma solicitação de autori
     
 **Detalhe dos Parâmetros**  
   
-_request (PaymentRequest)_
+_request (PaymentRequestV2)_
 
 | Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
@@ -159,7 +160,9 @@ _request (PaymentRequest)_
 | `appTransactionId` | `String` | Sim | Identificador da transação integrada para o software que originou a solicitação de pagamento. Não deve se repetir. |
 | `ApplicationInfo.credentials` | `Credentials` | Sim | Credenciais da aplicação que está solicitando a operação, conforme cadastro na PayStore. Basicamente, trata-se da identificação da aplicação e o token de acesso. | 
 | `ApplicationInfo.softwareVersion` | `String` | Sim | Versão da aplicação que está solicitando o pagamento. | 
-| `showReceiptView` | `Boolean` | Não | Indica se a tela de comprovante deve ser exibida pela aplicação de pagamentos (_true_) ou não (_false_). O valor padrão é _false_. | 
+| `showReceiptView` | `IGNORADO` | Não | A Solução irá utilizar o valor dos parâmetros `printMerchantReceipt` e `printCustomerReceipt` para executar a impressão depois que a [`confirmação`](#confirmpayment) for executada. | 
+| `printMerchantReceipt` | `Boolean` | Não | Indica se o comprovante do estabelecimento deve ser impresso depois da [`confirmação`](#confirmpayment) da transação. O valor padrão é _true_. | 
+| `printCustomerReceipt` | `Boolean` | Não | Indica se o comprovante do cliente deve ser impresso depois da [`confirmação`](#confirmpayment) da transação. O valor padrão é _true_. | 
 | `tokenizeCard` | `Boolean` | Não | Indica se deve ser feita a tokenização do cartão após a aprovação do pagamento (true) ou não (false). O valor padrão é false.  | 
 | `tokenizeEmail` | `String` | Se tokenizeCard for true, sim, caso contrário, não. | E-mail do portador do cartão. Se “tokenizeCard” for false, este parâmetro é ignorado. | 
 | `tokenizeNationalDocument` | `String` | Não | CPF ou CNPJ do portador do cartão. Se “tokenizeCard” for false, este parâmetro é ignorado. Se for true e não for informado esse parâmetro, então a chamada à API de criação de token no e-commerce também não o utilizará. | 
@@ -279,8 +282,7 @@ Como resultado, poderemos ter uma inconsistência transacional, visto que, na vi
 
 | Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
-| `paymentId` | `String` | Sim | Identificador da transação que será confirmada para a aplicação de pagamentos. |
-| `credentials` | `Credentials` | Sim | Credenciais da aplicação que está solicitando a operação, conforme cadastro na PayStore. Basicamente, trata-se da identificação da aplicação e o token de acesso. | 
+| `paymentId` | `String` | Sim | Identificador da transação que será confirmada para a aplicação de pagamentos. | 
 | `callback` | `PaymentCallback` | Sim | Interface que será executada para notificações de sucesso ou erro.   |
     
 **Detalhe dos parâmetros**  
@@ -356,7 +358,6 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
 
         try {
             paymentClient.confirmPayment(payment.getPaymentId(),
-                                         new Credentials("demo-app", "TOKEN-KEY-DEMO")
                                          new PaymentCallback() {
             
                 @Override
@@ -399,7 +400,6 @@ Caso o App consumidor desta API não tenha finalizado o seu processo de negócio
 | Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
 | `paymentId` | `String` | Sim | Identificador da transação que será desfeita para a aplicação de pagamentos. |
-| `credentials` | `Credentials` | Sim | Credenciais da aplicação que está solicitando a operação, conforme cadastro na PayStore. Basicamente, trata-se da identificação da aplicação e o token de acesso. | 
 | `callback` | `PaymentCallback` | Sim | Interface que será executada para notificações de sucesso ou erro.   |
     
 **Detalhe dos parâmetros**  
@@ -475,7 +475,6 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
 
         try {
             paymentClient.cancelPayment(payment.getPaymentId(), 
-                                        new Credentials("demo-app", "TOKEN-KEY-DEMO"), 
                                         new PaymentCallback() {
             
                 @Override
@@ -523,7 +522,7 @@ _request (ReversePaymentRequest)_
 | `appTransactionId` | `String` | Sim | Identificador da transação integrada para o software que originou a solicitação de estorno. Não deve se repetir. |
 | `ApplicationInfo.credentials` | `Credentials` | Sim | Credenciais da aplicação que está solicitando a operação, conforme cadastro na PayStore. Basicamente, trata-se da identificação da aplicação e o token de acesso. | 
 | `ApplicationInfo.softwareVersion` | `String` | Sim | Versão da aplicação que está solicitando o pagamento. | 
-| `showReceiptView` | `Boolean` | Não | Indica se a tela de comprovante deve ser exibida pela aplicação de pagamentos (_true_) ou não (_false_). O valor padrão é _false_. | 
+| `showReceiptView` | `IGNORADO` | Não | A Solução sempre irá imprimir o comprovante.  
 
 _callback (ReversePaymentCallback)_
 
@@ -604,6 +603,120 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
         Log.i(TAG, payment.toString());
     }
 }
+```
+
+### `reversePaymentV2()`
+
+Este método deve ser chamado quando se deseja fazer uma solicitação de estorno de pagamento. Durante sua execução, os dados do estorno serão validados, informações adicionais serão solicitadas ao operador (e.g. cartão) e a autorização junto à adquirente será feita.
+
+Note que a transação de estorno não possui confirmação, mas apenas desfazimento. Assim, a confirmação ocorrerá naturalmente com o não envio do desfazimento, a depender do comportamento de cada adquirente.
+
+Também a depender do comportamento de cada adquirente, é possível que não haja desfazimento para a transação de estorno para uma determinada adquirente. Neste caso, estornos aprovados retornarão o valor _false_ no campo "ReversePayment.cancelable". Além disto, caso seja chamado o método `cancelReversePayment()`, um erro específico será retornado informando que não é possível executar tal operação (vide [Códigos de Resposta](#codigos-de-resposta)).
+
+**Parâmetros**
+
+| Nome | Tipo | Obrigatório | Descrição |
+| -------- | -------- | -------- | -------- |
+| `request` | `ReversePaymentRequestV2` | Sim | Objeto de transferência de dados que conterá as informações da requisição do estorno do pagamento. Note que nem todos os parâmetros são obrigatórios.  |
+| `callback` | `ReversePaymentCallback` | Sim | Interface que será executada para notificações de sucesso ou erro do processo de estorno.   |
+    
+**Detalhe dos parâmetros**  
+  
+_request (ReversePaymentRequestV2)_
+
+| Nome | Tipo | Obrigatório | Descrição |
+| -------- | -------- | -------- | -------- |
+| `value` | `BigDecimal` | Não | Valor da transação a ser estornada. Caso não seja preenchido (null), a interface solicitará o valor do operador. Esta informação é utilizada para validar a integridade da transação que está sendo estornada. |
+| `paymentId` | `String` | Sim | Identificador da transação que será estornada para a aplicação de pagamentos. |
+| `appTransactionId` | `String` | Sim | Identificador da transação integrada para o software que originou a solicitação de estorno. Não deve se repetir. |
+| `ApplicationInfo.credentials` | `Credentials` | Sim | Credenciais da aplicação que está solicitando a operação, conforme cadastro na PayStore. Basicamente, trata-se da identificação da aplicação e o token de acesso. | 
+| `ApplicationInfo.softwareVersion` | `String` | Sim | Versão da aplicação que está solicitando o pagamento. | 
+| `showReceiptView` | `IGNORADO` | Não | A Solução irá utilizar o valor dos parâmetros `printMerchantReceipt` e `printCustomerReceipt` para executar a impressão. |
+| `printMerchantReceipt` | `Boolean` | Não | Indica se o comprovante do estabelecimento deve ser impresso. O valor padrão é _false_. | 
+| `printCustomerReceipt` | `Boolean` | Não | Indica se o comprovante do cliente deve ser impresso. O valor padrão é _false_. |   
+
+_callback (ReversePaymentCallback)_
+
+| Nome | Tipo | Obrigatório | Descrição |
+| -------- | -------- | -------- | -------- |
+| **`onSuccess`** ||| Método para notificação em caso de sucesso |
+| `ReversePayment.paymentId` | `String` | Sim | Identificador da transação de estorno para a aplicação de pagamentos. Esta é a informação a ser usada para a confirmação e desfazimento. |
+| `ReversePayment.acquirerId` | `String` | Sim | Identificador da transação de estorno para a adquirente. Identificador que consta no arquivo que a adquirente fornece, de forma que viabilize a conciliação do estorno com a transação integrada. |
+| `ReversePayment.cancelable` | `Boolean` | Sim | _True_, caso esta transação possa ser desfeita. _False_ caso contrário. |
+| `ReversePayment.acquirerResponseCode` | `String` | Sim | Código de resposta da adquirente. |
+| `ReversePayment.acquirerResponseDate` | `String` | Sim | Data/hora retornada pela adquirente. |
+| `ReversePayment.acquirerAuthorizationNumber` | `String` | Sim | Número da autorização fornecido pela adquirente (que consta no comprovante do portador do cartão). |
+| `ReversePayment.Receipt.clientVia` | `String` | Não | Conteúdo do comprovante - via do cliente. |
+| `ReversePayment.Receipt.merchantVia` | `String` | Não | Conteúdo do comprovante - via do estabelecimento. |
+|||||
+| **`onError`** ||| Método para notificação em caso de erro. |
+| `ErrorData.paymentsResponseCode` | `String` | Sim | Código de resposta para o erro ocorrido. Vide [Códigos de Resposta](#codigos-de-resposta) |
+| `ErrorData.acquirerResponseCode` | `String` | Não | Código de resposta para o erro ocorrido retornado pela adquirente. Note que este erro só será retornado se a transação for não autorizada pela adquirente. |
+| `ErrorData.responseMessage` | `String` | Sim | Mensagem descritiva da causa da não autorização. Caso a transação tenha sido negada pela adquirente, conterá a mensagem retornada pela adquirente. |
+
+##### Exemplo
+
+```java
+public class MyActivity extends Activity implements PaymentClient.PaymentCallback {
+
+    private PaymentClient paymentClient;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_payment);
+    
+        paymentClient = new PaymentClientImpl();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        paymentClient.bind(this);
+    }
+
+    @Override
+    protected void onPause() {
+        try {
+            paymentClient.unbind(this);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+        }
+        super.onPause();
+    }
+
+    public void doExecute(){
+        ReversePaymentRequestV2 request = new ReversePaymentRequestV2();
+        request.setValue(new BigDecimal(50));
+        request.setAppTransactionId("123456");
+        request.setPaymentId("999999");
+        request.setPrintCustomerReceipt(true);
+        request.setPrintMerchantReceipt(true);
+        
+        ApplicationInfo appInfo = new ApplciationInfo();
+        appInfo.setCredentials(new Credentials("demo-app", "TOKEN-KEY-DEMO"));
+        appInfo.setSoftwareVersion("1.0.0.0");
+        
+        request.setApplicationInfo(appInfo);
+
+        try {
+            paymentClient.reversePaymentV2(request, this);
+        } catch (ClientException e) {
+            Log.e(TAG, "Error starting payment", e);
+        }
+    }
+
+    @Override
+    public void onError(String errorMessage) {
+        Log.e(TAG, errorMessage);
+    }
+
+    @Override
+    public void onSuccess(ReversePayment payment) {
+        Log.i(TAG, payment.toString());
+    }
+}
+
 ```
 ### `cancelReversePayment()`
 
@@ -693,8 +806,7 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
         Log.i(TAG, payment.toString());
 
         try {
-            paymentClient.cancelReversePayment(payment.getPaymentId(), 
-                                               new Credentials("demo-app", "TOKEN-KEY-DEMO"),
+            paymentClient.cancelReversePayment(payment.getPaymentId(),
                                                new PaymentCallback() {
             
                 @Override
@@ -1038,14 +1150,14 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
 | -------| --------- | --------- |
 | 01     | Transação negada pela adquirente. | `startPayment` e `startPaymentV2` |
 | 02     | Transação negada pelo cartão. | `startPayment` e `startPaymentV2`|
-| 03     | Operação cancelada pelo operador. | `startPayment`, `startPaymentV2` e `reversePayment` |
-| 04     | Pagamento não encontrado. | `confirmPayment`, `cancelPayment`, `reversePayment` e `cancelReversePayment` |
+| 03     | Operação cancelada pelo operador. | `startPayment`, `startPaymentV2` , `reversePayment` e `reversePaymentV2` |
+| 04     | Pagamento não encontrado. | `confirmPayment`, `cancelPayment`, `reversePayment`, `reversePaymentV2` e `cancelReversePayment` |
 | 05     | Problerma na comunicação com o aplicativo de pagamento. | Todas |
 | 06     | Operação não disponível na adquirente. | `cancelReversePayment` |
 | 07     | Problema de comunicação com a adquirente. | Todas |
-| 08     | Credenciais Inválidas. | `startPayment`, `startPaymentV2` e `reversePayment` |
-| 09     | Aplicativo de Pagamentos não possui permissões para continuar . | `startPayment`,`startPaymentV2` e `reversePayment` |
-| 10     | Terminal Bloqueado. | `startPayment`, `startPaymentV2` e `reversePayment` |
-| 11     | Pagamento bloqueado pois existe transação pendente. | `startPayment`, `startPaymentV2` e `reversePayment` |
+| 08     | Credenciais Inválidas. | `startPayment`, `startPaymentV2`, `reversePayment` e `reversePaymentV2`|
+| 09     | Aplicativo de Pagamentos não possui permissões para continuar . | `startPayment`,`startPaymentV2`, `reversePayment` e `reversePaymentV2` |
+| 10     | Terminal Bloqueado. | `startPayment`, `startPaymentV2`, `reversePayment` e `reversePaymentV2`|
+| 11     | Pagamento bloqueado pois existe transação pendente. | `startPayment`, `startPaymentV2`, `reversePayment` e `reversePaymentV2`|
 | 12     | Tema inválido                                       |  `setTheme` |
 | 99     | Problema Interno. | Todas |
