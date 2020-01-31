@@ -519,7 +519,7 @@ _request (ReversePaymentRequest)_
 | -------- | -------- | -------- | -------- |
 | `value` | `BigDecimal` | Não | Valor da transação a ser estornada. Caso não seja preenchido (null), a interface solicitará o valor do operador. Esta informação é utilizada para validar a integridade da transação que está sendo estornada. |
 | `paymentId` | `String` | Sim | Identificador da transação que será estornada para a aplicação de pagamentos. |
-| `appTransactionId` | `String` | Sim | Identificador da transação integrada para o software que originou a solicitação de estorno. Não deve se repetir. |
+| `appTransactionId` | `String` | Sim | Identificador da transação integrada para o software que originou a solicitação de estorno. Deve ser o mesmo valor enviado na transação de pagamento. |
 | `ApplicationInfo.credentials` | `Credentials` | Sim | Credenciais da aplicação que está solicitando a operação, conforme cadastro na PayStore. Basicamente, trata-se da identificação da aplicação e o token de acesso. | 
 | `ApplicationInfo.softwareVersion` | `String` | Sim | Versão da aplicação que está solicitando o pagamento. | 
 | `showReceiptView` | `IGNORADO` | Não | A Solução sempre irá imprimir o comprovante.  
@@ -628,7 +628,7 @@ _request (ReversePaymentRequestV2)_
 | -------- | -------- | -------- | -------- |
 | `value` | `BigDecimal` | Não | Valor da transação a ser estornada. Caso não seja preenchido (null), a interface solicitará o valor do operador. Esta informação é utilizada para validar a integridade da transação que está sendo estornada. |
 | `paymentId` | `String` | Sim | Identificador da transação que será estornada para a aplicação de pagamentos. |
-| `appTransactionId` | `String` | Sim | Identificador da transação integrada para o software que originou a solicitação de estorno. Não deve se repetir. |
+| `appTransactionId` | `String` | Sim | Identificador da transação integrada para o software que originou a solicitação de estorno. Deve ser o mesmo valor enviado na transação de pagamento. |
 | `ApplicationInfo.credentials` | `Credentials` | Sim | Credenciais da aplicação que está solicitando a operação, conforme cadastro na PayStore. Basicamente, trata-se da identificação da aplicação e o token de acesso. | 
 | `ApplicationInfo.softwareVersion` | `String` | Sim | Versão da aplicação que está solicitando o pagamento. | 
 | `showReceiptView` | `IGNORADO` | Não | A Solução irá utilizar o valor dos parâmetros `printMerchantReceipt` e `printCustomerReceipt` para executar a impressão. |
