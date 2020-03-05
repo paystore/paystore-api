@@ -23,7 +23,7 @@ Para integração com a API de pagamentos, é fornecida a interface `PaymentClie
 | [`void cancelReversePayment(String paymentId, PaymentCallback paymentCallback)`](#cancelReversepayment) | Desfaz uma solicitação de estorno de pagamento.  |
 | [`void setTheme(String theme, PaymentCallback paymentCallback)`](#setTheme) | Define um tema para a aplicação de Pagamentos.  |
 
-### `startPayment()`
+### `startPayment()`  **( DEPRECATED : Utilizar startPaymentV2 )**
 
 Este método deve ser chamado quando se deseja fazer uma solicitação de autorização de pagamento. Durante sua execução, os dados do pagamento serão validados, informações adicionais serão solicitadas ao operador (e.g. senha e CVV), e a autorização junto à adquirente será feita.
 
@@ -496,7 +496,7 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
 }
 ```
 
-### `reversePayment()`
+### `reversePayment()` **( DEPRECATED : Utilizar reversePaymentV2 )**
 
 Este método deve ser chamado quando se deseja fazer uma solicitação de estorno de pagamento. Durante sua execução, os dados do estorno serão validados, informações adicionais serão solicitadas ao operador (e.g. cartão) e a autorização junto à adquirente será feita.
 
