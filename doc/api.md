@@ -931,24 +931,24 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
 
 ### `startExtraction()`
 
-Esse mÃ©todo deve ser chamado para fazer a extraÃ§Ã£o dos dados do Payments e das adquirentes sendo utilizadas e enviÃ¡-los para a AWS (Amazon Web Services).
+Esse método deve ser chamado para fazer a extração dos dados do Payments e das adquirentes sendo utilizadas e enviá-los para a AWS (Amazon Web Services).
 
-**ParÃ¢metros**
+**Parâmetros**
 
-| Nome | Tipo | ObrigatÃ³rio | DescriÃ§Ã£o |
+| Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
-| `callback` | `PaymentCallback` | Sim | Interface que serÃ¡ executada para notificaÃ§Ãµes de sucesso ou erro.   |
+| `callback` | `PaymentCallback` | Sim | Interface que será executada para notificações de sucesso ou erro.   |
 
-**Detalhe dos parÃ¢metros** 
+**Detalhe dos parâmetros** 
 
 _callback_
 
-| Nome | Tipo | ObrigatÃ³rio | DescriÃ§Ã£o |
+| Nome | Tipo | Obrigatório | Descrição |
 | -------- | -------- | -------- | -------- |
-| **`onSuccess`** ||| MÃ©todo para notificaÃ§Ã£o em caso de sucesso |
+| **`onSuccess`** ||| Método para notificação em caso de sucesso |
 |||||
-| **`onError`** ||| MÃ©todo para notificaÃ§Ã£o em caso de erro. |
-| `ErrorData.paymentsResponseCode` | `String` | Sim | CÃ³digo de resposta para o erro ocorrido. Vide [CÃ³digos de Resposta](#codigos-de-resposta)|
+| **`onError`** ||| Método para notificação em caso de erro. |
+| `ErrorData.paymentsResponseCode` | `String` | Sim | Código de resposta para o erro ocorrido. Vide [Códigos de Resposta](#codigos-de-resposta)|
 | `ErrorData.responseMessage` | `String` | Sim | Mensagem descritiva da causa do erro. |
 
 ##### Exemplo
