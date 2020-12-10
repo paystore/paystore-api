@@ -22,6 +22,7 @@ Para integração com a API de pagamentos, é fornecida a interface `PaymentClie
 | [`void reversePaymentV2(ReversePaymentRequestV2 paymentRequest, PaymentCallback paymentCallback)`](#reversepaymentV2) | Realiza o processo de estorno de pagamento.  |
 | [`void cancelReversePayment(String paymentId, PaymentCallback paymentCallback)`](#cancelReversepayment) | Desfaz uma solicitação de estorno de pagamento.  |
 | [`void setTheme(String theme, PaymentCallback paymentCallback)`](#setTheme) | Define um tema para a aplicação de Pagamentos.  |
+| [`void startExtraction(PaymentCallback paymentCallback)`](#startExtraction) | Faz o upload dos dados do Payments e das adquirentes para a AWS. |
 
 ### `startPayment()`  **( DEPRECATED : Utilizar startPaymentV2 )**
 
@@ -928,6 +929,82 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
 }
 ```
 
+### `startExtraction()`
+
+Esse mÃ©todo deve ser chamado para fazer a extraÃ§Ã£o dos dados do Payments e das adquirentes sendo utilizadas e enviÃ¡-los para a AWS (Amazon Web Services).
+
+**ParÃ¢metros**
+
+| Nome | Tipo | ObrigatÃ³rio | DescriÃ§Ã£o |
+| -------- | -------- | -------- | -------- |
+| `callback` | `PaymentCallback` | Sim | Interface que serÃ¡ executada para notificaÃ§Ãµes de sucesso ou erro.   |
+
+**Detalhe dos parÃ¢metros** 
+
+_callback_
+
+| Nome | Tipo | ObrigatÃ³rio | DescriÃ§Ã£o |
+| -------- | -------- | -------- | -------- |
+| **`onSuccess`** ||| MÃ©todo para notificaÃ§Ã£o em caso de sucesso |
+|||||
+| **`onError`** ||| MÃ©todo para notificaÃ§Ã£o em caso de erro. |
+| `ErrorData.paymentsResponseCode` | `String` | Sim | CÃ³digo de resposta para o erro ocorrido. Vide [CÃ³digos de Resposta](#codigos-de-resposta)|
+| `ErrorData.responseMessage` | `String` | Sim | Mensagem descritiva da causa do erro. |
+
+##### Exemplo
+
+```java
+public class MyActivity extends Activity implements PaymentClient.PaymentCallback {
+
+    private PaymentClient paymentClient;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_payment);
+    
+        paymentClient = new PaymentClientImpl();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        paymentClient.bind(this);
+    }
+
+    @Override
+    protected void onPause() {
+         try {
+            paymentClient.unbind(this);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+        }
+        super.onPause();
+    }
+
+    public void doExecute(){
+        ApplicationInfo appInfo = new ApplciationInfo();
+        appInfo.setCredentials(new Credentials("demo-app", "TOKEN-KEY-DEMO"));
+        appInfo.setSoftwareVersion("1.0.0.0");
+        
+        try {
+            paymentClient.startExtraction(this);
+        } catch (ClientException e) {
+            Log.e(TAG, "Error while uploading data.", e);
+        }
+    }
+
+    @Override
+    public void onError(Object data) {
+        Log.e(TAG, "Error: " + errorData.getResponseMessage());
+    }
+
+    @Override
+    public void onSuccess(Object data) {
+        Log.i(TAG, "Success!");
+    }
+}
+```
 
 # Integração com Aplicação de Pagamentos via _Content Povider_
 
