@@ -23,6 +23,7 @@ Para integração com a API de pagamentos, é fornecida a interface `PaymentClie
 | [`void cancelReversePayment(String paymentId, PaymentCallback paymentCallback)`](#cancelReversepayment) | Desfaz uma solicitação de estorno de pagamento.  |
 | [`void setTheme(String theme, PaymentCallback paymentCallback)`](#setTheme) | Define um tema para a aplicação de Pagamentos.  |
 | [`void startExtraction(PaymentCallback paymentCallback)`](#startExtraction) | Faz o upload dos dados do Payments e das adquirentes para a AWS. |
+| [`void startEchoTest(PaymentCallback paymentCallback)`](#startEchoTest) | Inicia o processo para realizar os testes de comunicação. |
 
 ### `startPayment()`  **( DEPRECATED : Utilizar startPaymentV2 )**
 
@@ -1005,6 +1006,118 @@ public class MyActivity extends Activity implements PaymentClient.PaymentCallbac
     }
 }
 ```
+
+### `startEchoTest()`
+
+Esse método deve ser chamado quando se deseja realizar testes de comunicação com os servidores que o terminal se comunica. Ao fim da execução será retornado o objeto EchoTestResults, contendo informações de cada teste executado.
+
+**Parâmetros**
+
+| Nome | Tipo | Obrigatório | Descrição |
+| -------- | -------- | -------- | -------- |
+| `callback` | `PaymentCallback` | Sim | Interface que será executada para notificações de sucesso ou erro. |
+
+**Detalhe dos parâmetros** 
+
+_callback_
+
+| Nome | Tipo | Obrigatório | Descrição |
+| -------- | -------- | -------- | -------- |
+| **`onSuccess`** ||| Método para notificação em caso de sucesso |
+|||||
+| **`onError`** ||| Método para notificação em caso de erro. |
+| `ErrorData.paymentsResponseCode` | `String` | Sim | Código de resposta para o erro ocorrido. Vide [Códigos de Resposta](#codigos-de-resposta)|
+| `ErrorData.responseMessage` | `String` | Sim | Mensagem descritiva da causa do erro. |
+
+##### Exemplo
+
+```java
+public class MyActivity extends Activity implements PaymentClient.PaymentCallback {
+
+    private PaymentClient paymentClient;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_payment);
+    
+        paymentClient = new PaymentClientImpl();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        paymentClient.bind(this);
+    }
+
+    @Override
+    protected void onPause() {
+         try {
+            paymentClient.unbind(this);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+        }
+        super.onPause();
+    }
+
+    public void doExecute(){
+        ApplicationInfo appInfo = new ApplciationInfo();
+        appInfo.setCredentials(new Credentials("demo-app", "TOKEN-KEY-DEMO"));
+        appInfo.setSoftwareVersion("1.0.0.0");
+        
+        try {
+            paymentClient.startEchoTest(this);
+        } catch (ClientException e) {
+            Log.e(TAG, "Error while uploading data.", e);
+        }
+    }
+
+    @Override
+    public void onError(Object data) {
+        Log.e(TAG, "Error: " + errorData.getResponseMessage());
+    }
+
+    @Override
+    public void onSuccess(Object data) {
+        CommTestResults results = (CommTestResults) data;
+        Log.i(TAG, results.toString());
+    }
+}
+```
+
+### Retorno
+
+| Nome | Tipo |  Descrição |
+| -------- | -------- | -------- |
+| `isConnectedNetwork` | `boolean` | Identifica se está conectado a alguma rede, seja ela Wi-Fi ou Chip de Dados. |
+| `networkLevel` | `int` | Nível de sinal da rede conectada. |
+| `isPaystoreInit` | `boolean` | Indica se a Inicialização com a Paystore está disponível. |
+| `isStoreStatus` | `boolean` |  Indica se a Loja de Apps está disponível. |
+| `storeResponseTime` | `Long` | Tempo de resposta da Loja de Apps.  |
+| `acquirerResults` | `List<AcquirerCommTestResults>` | Lista com resultados dos testes de comunicação com as adquirentes. |
+| `serverName` | `String` | Nome do servidor. |
+| `serverStatus` | `boolean` | Indica se o servidor está disponível. |
+| `serverMeanResponseTime` | `Long` | Média do tempo de resposta dos testes com o servidor (no caso de ter mais de um adquirente, esse tempo é a média de todos os adquirentes instalados). |
+
+##### AcquirerCommTestResults
+
+| Nome | Tipo |  Descrição |
+| -------- | -------- | -------- |
+| `acquirerName` | `String` | Nome do adquirente. |
+| `acquirerStatus` | `CommTestStatus` | Indica se a comunicação com o adquirente está disponível. |
+| `acquirerResponseTime` | `Long` | Tempo de resposta do teste com o adquirente. |
+| `serverName` | `String` | Nome do servidor. |
+| `serverStatus` | `CommTestStatus` | Indica se o servidor está disponível. |
+| `serverResponseTime` | `Long` | Tempo de resposta dos testes com o servidor. |
+
+##### CommTestStatus
+
+| Nome | Descrição |
+| -------- | -------- |
+| NONE | Não há comunicação. |
+| ONLINE | Comunicação está Online. |
+| OFFLINE | Comunicação está Offline |
+
 
 # Integração com Aplicação de Pagamentos via _Content Povider_
 
