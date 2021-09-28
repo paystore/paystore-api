@@ -21,3 +21,4 @@ A documentação da API encontra-se [aqui](http://177.69.97.18:6655).
 | payments-api-2.6.33     | v2.6.47                        |
 | payments-api-2.6.34     | v2.6.48                        |
 | payments-api-2.6.35     | v2.6.49                        |
+| payments-api-2.6.36     | v2.6.50                        |
