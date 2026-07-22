@@ -20,6 +20,7 @@ A tabela abaixo apresenta as combinações homologadas entre as versões do **pa
 | `payments-api-4.1.0.5`  | v2.11.8                            | v2.12.7                            |
 | `payments-api-4.1.0.6`  | v2.11.8 a v2.11.9                  | v2.12.7 a v2.12.8                  |
 | `payments-api-4.1.0.7`  | v2.11.8 a v2.11.9                  | v2.12.8 a v2.12.9                  |
+| `payments-api-4.1.0.9`  | v2.11.8 a v2.11.9                  | v2.12.9 a v2.12.10                 |
 
 
 ---
